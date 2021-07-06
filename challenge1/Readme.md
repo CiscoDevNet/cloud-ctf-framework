@@ -7,8 +7,11 @@ Vulnerability : the default nacl which gets applied to vpc allows all traffic
 
 below is the vulnerable code in main.tf in vpc 
 
-resource "aws_default_network_acl" "default" {
+resource "aws_default_network_acl" "default"
+
+{
     default_network_acl_id = aws_vpc.ctf-vpc.default_network_acl_id
+    
     ingress{
         protocol = -1
         rule_no = 100
