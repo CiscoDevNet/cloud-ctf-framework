@@ -3,7 +3,9 @@ This challenges talks on the error in iam policy for the S3 bucket
 
 Vulnerability : 
 
-data "aws_iam_policy_document" "CDN"{
+data "aws_iam_policy_document" "CDN"
+
+{
     statement{
         sid = "AllowCloudFrontOAI"
         effect = "Allow"
