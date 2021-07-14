@@ -6,11 +6,15 @@ Vulnerability :
 data "aws_iam_policy_document" "CDN"
 
 {
-    statement{
+    statement
+    
+    {
         sid = "AllowCloudFrontOAI"
         effect = "Allow"
         actions = ["s3:*"]-----------> basically gives all permission on the s3 object 
-        principals{
+        principals
+        
+        {
             type = "AWS"
             #identifiers = [aws_cloudfront_origin_access_identity.cdnaccess.s3_canonical_user_id]
             identifiers = [aws_cloudfront_origin_access_identity.cdnaccess.iam_arn]
