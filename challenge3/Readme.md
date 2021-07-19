@@ -1,4 +1,6 @@
-Access Control 
+####### Access Control:
+
+
 This challenge talks on missing function level access control on resources 
 
 In this challenges there are differen groups created and in one the group policy due to incorrectly configured (as it does enforce user folder access restriction). Any user can access
