@@ -48,10 +48,15 @@ statement
 {
       sid = "AllowObject"
       effect = "Allow"
-      actions = ["s3:*"]
-      resources = [
+      actions = 
+      ["s3:*"]
+      resources = 
+      [
           "${local.ctf_bucket}/Home/$${aws:username}",
           "${local.ctf_bucket}/Home/$${aws:username}/*"
       ]
+      
     }
+    
+    
 }
