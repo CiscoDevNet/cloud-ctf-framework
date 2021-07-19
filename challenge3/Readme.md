@@ -56,7 +56,7 @@ statement
           "${local.ctf_bucket}/Home/$${aws:username}/*"
       ]
       
-    }
+ }
     
     
 }
