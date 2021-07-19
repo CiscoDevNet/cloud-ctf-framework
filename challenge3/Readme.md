@@ -11,8 +11,11 @@ Vulnerability in "aws_iam_policy_document" "home_folder"
 
 
 data "aws_iam_policy_document" "home_folder"
+
+
 {
-    statement 
+   
+   statement 
     
     {
       sid = "AllowFolder"
