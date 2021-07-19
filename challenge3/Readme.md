@@ -44,7 +44,8 @@ data "aws_iam_policy_document" "home_folder"
 
 Solution : 
 
-statement {
+statement 
+{
       sid = "AllowObject"
       effect = "Allow"
       actions = ["s3:*"]
