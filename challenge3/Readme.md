@@ -54,7 +54,9 @@ statement
       sid = "AllowObject"
       effect = "Allow"
       actions = 
-      ["s3:*"]
+      ["s3:*Object",
+      "s3:DeleteObjectVersion",
+      "s3:GetObjectVersion","]
       resources = 
       [
           "${local.ctf_bucket}/Home/$${aws:username}",
