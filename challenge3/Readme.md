@@ -54,6 +54,7 @@ statement
       sid = "AllowObject"
       effect = "Allow"
       actions = 
+      
       [
        "s3:*Object",
       
