@@ -6,6 +6,7 @@ In the problem challenge the username and password is stored in ssm as part of t
 
 In the challenge the user name/password is being referenced in user-data as part of environment variable which is highly not recommended 
 
+ref----https://docs.aws.amazon.com/systems-manager/latest/userguide/sysman-paramstore-access.html
 Vulnerability########
 
 
