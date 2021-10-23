@@ -3,9 +3,9 @@ provider "aws" {
 }
 
 terraform {
-    backend "s3"{
-        bucket="terraform-infra-state-ctf"
-        key ="home/terraform.tfstate"
-        region="ap-south-1"
-    }
+  backend "s3" {
+    bucket = "terraform-infra-state-ctf"
+    key    = "home/terraform.tfstate"
+    region = "ap-south-1"
+  }
 }
