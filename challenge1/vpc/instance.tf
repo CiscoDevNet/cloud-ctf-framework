@@ -1,14 +1,16 @@
+/*
 resource "aws_key_pair" "mykey" {
   key_name   = "mykey"
   public_key = file("${var.PATH_TO_PUBLIC_KEY}")
   #public_key = var.PATH_TO_PUBLIC_KEY
 }
-
+*/ This is the key pair which it generates. this is not required as I set this for me to login to ec2 instance for testing
+  
 resource "aws_instance" "chall1http" {
   ami             = "ami-041d6256ed0f2061c"
   instance_type   = "t2.micro"
   subnet_id       = aws_subnet.my-public.id
-  key_name        = aws_key_pair.mykey.key_name
+  #key_name        = aws_key_pair.mykey.key_name
   security_groups = [aws_security_group.vpc_security_group.id]
   user_data       = <<EOF
     #!/bin/bash
