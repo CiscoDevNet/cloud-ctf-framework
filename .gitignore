@@ -1,3 +1,4 @@
 .env
 */*/mykey*
-challenge*/*/.terraform
+challenge*/.terraform*
+challenge*/*/.terraform*
