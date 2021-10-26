@@ -1,14 +1,15 @@
-from flask import render_template
-import json
+from CTFd.schemas.teams import TeamSchema
+from CTFd.schemas.users import UserSchema
+from CTFd.utils.user import get_current_team, get_current_user
+
 
 def load(app):
     @app.route('/plugins/jgroetzi-test-1', methods=['POST', 'GET'])
     def view_plugins_jgroetzi_test1():
-        data = {"some": "value"}
-        response = app.response_class(
-            response=json.dumps(data),
-            status=200,
-            mimetype='application/json'
-        )
-        return response
-        #return render_template('page.html', content="<h1>jgroetzi Test</h1><p>this is a test</p>")
+        team = get_current_team()
+        team_info = TeamSchema().dump(team)
+
+        user = get_current_user()
+        user_info = UserSchema().dump(user)
+
+        return {"success": True, "team": team_info.data, "user": user_info.data}
