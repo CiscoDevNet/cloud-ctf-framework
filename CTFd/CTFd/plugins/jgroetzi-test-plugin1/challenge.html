@@ -1,0 +1,15 @@
+<html>
+<button id="jgroetzi-test-1-btn" onClick="plugin1()">test plugin1</button>
+<script>
+    function plugin1() {
+        fetch("/plugins/jgroetzi-test-1", {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json'
+            },
+        }).then(res => {
+            console.log("Request complete! response:", res);
+        });
+    }
+</script>
+</html>
