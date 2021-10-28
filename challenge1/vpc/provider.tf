@@ -2,6 +2,7 @@ provider "aws" {
   region = var.AWS_REGION
 }
 
+/*
 terraform {
     backend "s3"{
         bucket="terraform-infra-state-ctf"
@@ -9,3 +10,4 @@ terraform {
         region="ap-south-1"
     }
 }
+*/
