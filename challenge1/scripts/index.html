@@ -1,0 +1,17 @@
+<html>
+<button style="background-color:green;" id="jgroetzi-test-1-btn" onClick="plugin1()">Deploy</button>
+	<p id="test"></p>
+	<button style="background-color:yellow;" id="jgroetzi-test-2-btn">Validate</button>
+	<button style="background-color:red;" id="jgroetzi-test-3-btn">Destroy</button>
+<script>
+    function plugin1() {
+        fetch("/plugins/jgroetzi-test-1", {
+            method: "GET",
+            headers: {
+                'Accept': 'application/json'
+            },
+        }).then(response => response.json())
+  .then(data => document.getElementById("test").innerHTML=data.Note);
+    }
+</script>
+</html>
