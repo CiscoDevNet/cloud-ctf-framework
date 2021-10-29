@@ -1,8 +1,9 @@
-resource "aws_key_pair" "mykey"{
+/*resource "aws_key_pair" "mykey"{
     key_name = "mykey"
     public_key = "${file("${var.PATH_TO_PUBLIC_KEY}")}"
     #public_key = var.PATH_TO_PUBLIC_KEY
 }
+*/
 
 resource "aws_instance" "chall1http"{
     ami = "ami-041d6256ed0f2061c"
