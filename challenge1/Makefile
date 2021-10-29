@@ -2,6 +2,9 @@
 include ../.env
 export
 
+show-env:
+	env |grep -E 'AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY'
+
 init:
 	cd vpc && terraform init
 
@@ -12,3 +15,6 @@ apply:
 	cd vpc && terraform apply
 
 deploy: init apply
+
+destroy:
+	cd vpc && terraform destroy
