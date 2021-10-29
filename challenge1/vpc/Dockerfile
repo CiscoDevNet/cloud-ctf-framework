@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/terraform-test
+FROM scalr/terraform:1.0.9
 COPY . .
 RUN chmod +x startup.sh
-CMD ["sh","startup.sh"]
+ENTRYPOINT ["sh","startup.sh"]
