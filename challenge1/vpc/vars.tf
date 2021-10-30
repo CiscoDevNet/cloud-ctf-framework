@@ -10,3 +10,9 @@ variable "PATH_TO_PUBLIC_KEY" {
 variable "PATH_TO_PRIVATE_KEY" {
   default = "mykey"
 }
+
+variable "additional_tags" {
+  default     = { "type" = "challenge1" }
+  description = "Additional resource tags"
+  type        = map(string)
+}
