@@ -2,4 +2,6 @@
 */*/mykey*
 challenge*/.terraform*
 challenge*/*/.terraform*
+challenge*/terraform.tfstate
+challenge*/*/terraform.tfstate
 .data

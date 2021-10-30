@@ -1,5 +1,7 @@
 .env
 */*/mykey*
 challenge*/.terraform*
+challenge*/terraform.tfstate
 challenge*/*/.terraform*
+challenge*/*/terraform.tfstate
 .data
