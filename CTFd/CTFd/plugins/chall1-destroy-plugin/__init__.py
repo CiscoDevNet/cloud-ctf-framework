@@ -11,10 +11,10 @@ def create_job_object():
     # Configureate Pod template container
     access_key = k8sclient.V1EnvVar(
         name="AWS_ACCESS_KEY_ID",
-        value="AKIA5AG3WQBBPQIGTJSI")
+        value="xxxxxxxxxxxxxxxxxxx")
     secret_key = k8sclient.V1EnvVar(
         name="AWS_SECRET_ACCESS_KEY",
-        value="nw7RIAi07dt6hcDmUd21P0VqHYdY3nMbhMoInM67")
+        value="xxxxxxxxxxxxxxxxxxx")
     image_pull_secrets = k8sclient.V1LocalObjectReference(
          name="cloud-ctf-cloudctfbot-pull-secret")
     container = k8sclient.V1Container(
