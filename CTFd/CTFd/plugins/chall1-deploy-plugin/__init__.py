@@ -49,13 +49,13 @@ def load(app):
     @app.route('/plugins/chall1-deploy-plugin', methods=['POST', 'GET'])
     def view_plugins_chall1_deploy():
 
-        client = boto3.client('ec2',aws_access_key_id="AKIA5AG3WQBBPQIGTJSI", aws_secret_access_key="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",region_name='ap-south-1')
+        client = boto3.client('ec2',aws_access_key_id="xxxxxxxxxxxxxxxxxxx", aws_secret_access_key="xxxxxxxxxxxxxxxxxxx",region_name='ap-south-1')
         describeVpc= client.describe_vpcs()
         describeVpcs=describeVpc['Vpcs']
         dict={}
 
         session = boto3.Session(region_name="ap-south-1")
-        ec2 = session.resource('ec2',aws_access_key_id="AKIA5AG3WQBBPQIGTJSI", aws_secret_access_key="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")
+        ec2 = session.resource('ec2',aws_access_key_id="xxxxxxxxxxxxxxxxxxx", aws_secret_access_key="xxxxxxxxxxxxxxxxxxx")
         instances = ec2.instances.filter(
                 Filters=[{'Name': 'instance-state-name', 'Values': ['running']},{'Name': 'tag:Name', 'Values': ['CloudCTFchall1']}])
         count=0
