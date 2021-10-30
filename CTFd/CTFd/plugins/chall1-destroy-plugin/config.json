@@ -1,0 +1,4 @@
+{
+  "name": "CTFd Plugin to destroy challenge1",
+  "route": "/plugins/chall1-destroy-plugin"
+}
