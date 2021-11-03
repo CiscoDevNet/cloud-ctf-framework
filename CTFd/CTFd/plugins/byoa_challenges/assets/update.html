@@ -1,0 +1,19 @@
+{% extends "admin/challenges/update.html" %}
+
+{% block value %}
+<div class="form-group">
+    <label>
+        Value:<br>
+        <small class="form-text text-muted">
+            This is how many points are rewarded for solving this challenge.
+        </small>
+    </label>
+    <input type="number" class="form-control" name="value" placeholder="Enter value" value="{{ challenge.value }}" required>
+    <label for="api_base_uri">Api Base URI<br>
+        <small class="form-text text-muted">
+            This is the base API URI. blah
+        </small>
+    </label>
+    <input type="text" class="form-control" name="api_base_uri" placeholder="Enter api base uri" value="{{ challenge.api_base_uri }}" required>
+</div>
+{% endblock %}
