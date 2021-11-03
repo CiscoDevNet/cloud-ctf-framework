@@ -8,8 +8,10 @@ Vulnerability : the default nacl which gets applied to vpc allows all traffic. T
 below is the vulnerable code in main.tf in vpc . The idea here is that only 106.203.219.180 should be accessing the web application. 
 
 
-resource "aws_default_network_acl" "default" {
+resource "aws_default_network_acl" "default"
+{
     default_network_acl_id = aws_vpc.ctf_challenge1_vpc.default_network_acl_id
+    
     ingress{
         protocol = -1
         rule_no = 100
