@@ -26,7 +26,7 @@ push-ctfd: build-ctfd
 	docker image tag $(NS)/$(IMAGE_NAME_CTFD):$(VERSION) $(CCC_PATH_CTFD):$(PUSH_TAG) && docker image push $(CCC_PATH_CTFD):$(PUSH_TAG)
 
 run-ctfd:
-	mkdir -p .data && touch .data/ctfd.db && docker run --name=$(LOCAL_CONTAINER_NAME_CTFD) -d --restart always -p 8000:8000 -v ${CURDIR}/.data/ctfd.db:/opt/CTFd/CTFd/ctfd.db $(NS)/$(IMAGE_NAME_CTFD):$(VERSION)
+	mkdir -p .data && touch .data/ctfd.db && docker run --name=$(LOCAL_CONTAINER_NAME_CTFD) -d --restart always -p 8000:8000 -v ${CURDIR}/.data/ctfd.db:/opt/CTFd/CTFd/ctfd.db -v ${CURDIR}:/opt/CloudCTF $(NS)/$(IMAGE_NAME_CTFD):$(VERSION)
 
 stop-cftd:
 	docker stop $(LOCAL_CONTAINER_NAME_CTFD)
