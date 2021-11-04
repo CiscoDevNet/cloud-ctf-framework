@@ -42,3 +42,8 @@ rm-ctfd:
 
 shell-ctfd:
 	docker exec -it $(LOCAL_CONTAINER_NAME_CTFD) bash
+
+rt: restart-ctfd tail-ctfd
+
+tail-ctfd:
+	docker logs --follow --tail 5 $(LOCAL_CONTAINER_NAME_CTFD)

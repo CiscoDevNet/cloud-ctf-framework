@@ -1,1 +1,14 @@
-{% extends "challenge.html" %}
+{% extends "core/challenge.html" %}
+
+{% block header %}
+    <div class="alert alert-secondary" role="alert">
+        Bring Your Own Account (BYOA) challenges are ones that require the Team to provide their own AWS account. These challenges will be provisioned in their own accounts.
+    </div>
+{% endblock %}
+
+{% block connection_info %}
+    <h2 class='challenge-name text-center pt-3'>
+        {{ challenge.deploy_status }}
+    </h2>
+{% endblock %}
+<span class="challenge-desc">{% block description %}{{ challenge.deploy_status }}{% endblock %}</span>
