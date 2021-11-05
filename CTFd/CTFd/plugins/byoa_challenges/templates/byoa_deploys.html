@@ -30,10 +30,10 @@
                                     <td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ deployment.deploy_status }}</td>
                                     <td>
                                         <div class="row submit-row">
-                                            <div class="col-md-3 form-group key-submit">
+                                            <div class="col-md-6 form-group key-submit">
                                                 <form>
-                                                    <button id="challenge-submit" class="challenge-submit" type="submit" formaction="/plugins/byoa_challenges/deploy/{{ deployment.challenge_id }}/{{ deployment.team_id }}">
-                                                        Deploy
+                                                    <button id="challenge-submit" class="challenge-submit" type="submit" formaction="/plugins/byoa_challenges/view/{{ deployment.challenge_id }}/{{ deployment.team_id }}">
+                                                        View Deploy Details
                                                     </button>
                                                 </form>
 

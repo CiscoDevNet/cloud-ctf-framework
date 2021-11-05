@@ -1,6 +1,11 @@
 {% extends "core/base.html" %}
 
 {% block content %}
+    {%  if banner %}
+        <div class="alert alert-{{ banner.level }} text-center" role="alert">
+            <strong>{{ banner.msg }}</strong>
+        </div>
+    {%  endif %}
     <div class="container">
         <h2>BYOA Challenge Deployment</h2>
         {% if error %}

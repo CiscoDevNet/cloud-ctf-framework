@@ -10,7 +10,17 @@ CTFd._internal.challenge.render = function (markdown) {
 }
 
 
-CTFd._internal.challenge.postRender = function () { }
+CTFd._internal.challenge.postRender = function () {
+    console.log(this.data)
+
+    document.getElementById("challenge-cur-deploy-status-text").innerHTML = "Current Deploy Status for your team: "+this.data.deploy_status;
+
+    if(this.data.deploy_status !== 'NOT_DEPLOYED'){
+        deploy_btn = document.getElementById("challenge-deploy-btn")
+        deploy_btn.disabled = true;
+        deploy_btn.title = "You can only deploy when the status is NOT_DEPLOYED"
+    }
+}
 
 
 CTFd._internal.challenge.submit = function (preview) {
@@ -38,3 +48,13 @@ CTFd._internal.challenge.submit = function (preview) {
         return response
     })
 };
+
+function deploy_challenge(challenge_id) {
+    fetch("/plugins/byoa_challenges/deploy/"+challenge_id, {
+        method: "GET",
+        headers: {
+            'Accept': 'application/json'
+        },
+    }).then(response => response.json())
+        .then(data => document.getElementById("test").innerHTML=data.Note);
+}

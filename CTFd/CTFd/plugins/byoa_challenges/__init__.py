@@ -4,6 +4,7 @@ import boto3
 from attr import dataclass
 from flask import Blueprint, render_template, Response
 from kubernetes.client import V1Job
+from werkzeug.routing import Rule
 
 from CTFd.models import Challenges, db, TeamFieldEntries
 # from CTFd.schemas.fields import TeamFieldEntriesSchema
@@ -16,6 +17,8 @@ from CTFd.utils.logging import log
 from typing import Union, List, Dict
 from kubernetes import client as k8sclient
 from kubernetes import config
+from .byoa_exception import ByoaException
+from functools import wraps
 
 @dataclass
 class ByoaTeamAwsInfo:
@@ -38,6 +41,12 @@ class ByoaChallengeEntry(Challenges):
     def __init__(self, api_base_uri, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.api_base_uri = api_base_uri
+
+    def __str__(self):
+        return str(self.__dict__)
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class ByoaChallengeDeploys(db.Model):
@@ -313,64 +322,92 @@ def load(app):
     )
 
     app.config['TEMPLATES_AUTO_RELOAD'] = True
+    # This does not work, makes call return a 404
+    # app.url_map.add(Rule('/plugins/byoa_challenges/deploy/<challenge_id>/<team_id>', endpoint='byoa_challenges.view_byoa_challenge_deploy', methods=['GET', 'POST']))
+    # app.url_map.add(Rule('/plugins/byoa_challenges/deploy/<challenge_id>', endpoint='byoa_challenges.view_byoa_challenge_deploy', methods=['GET', 'POST']))
+
+
     @app.route('/plugins/byoa_challenges/deploys', methods=['GET'])
+    @requires_auth
     def view_byoa_deploys():
-        if not authed():
-            return render_template('errors/403.html', error="You are not logged in")
-        # deployments = ByoaChallengeDeploys.query.filter_by(team_id=team_info.id).first()
-        # deployments = [{'id': 1, 'team_id': 1, 'challenge_id': 69, 'deploy_status': 'DERPED'}]
-        # if they are admin display all, otherwise only display deploys for their team
-        if is_admin():
-            deployments = get_byoa_cds_as_dicts()
-        else:
+        try:
+            # authed_or_fail()
+            # deployments = ByoaChallengeDeploys.query.filter_by(team_id=team_info.id).first()
+            # deployments = [{'id': 1, 'team_id': 1, 'challenge_id': 69, 'deploy_status': 'DERPED'}]
+            # if they are admin display all, otherwise only display deploys for their team
+            if is_admin():
+                deployments = get_byoa_cds_as_dicts()
+            else:
+                team: Teams = get_current_team()
+                deployments = get_byoa_cds_as_dicts(team_id=team.id)
+            # return {"deployments": deployments}
+            return render_template('cisco/byoa_challenges/byoa_deploys.html', deployments=deployments)
+            # return {"success": True, "team": team}
+        except ByoaException as be:
+            return be.get_response_from_exception()
+
+
+    @app.route('/plugins/byoa_challenges/view/<challenge_id>/<team_id>', methods=['GET'])
+    @app.route('/plugins/byoa_challenges/view/<challenge_id>', methods=['GET'])
+    @requires_auth
+    def view_byoa_challenge_deploy(challenge_id, team_id=None):
+        try:
+            # authed_or_fail()
+            challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
+            if not challenge:
+                raise ByoaException("This challenge_id does not exist.", ["Invalid challenge_id! This challenge_id does not exist."], 404)
+                # return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
+
             team: Teams = get_current_team()
-            deployments = get_byoa_cds_as_dicts(team_id=team.id)
-        # return {"deployments": deployments}
-        return render_template('cisco/byoa_challenges/byoa_deploys.html', deployments=deployments)
-        # return {"success": True, "team": team}
+            if team_id is not None:
+                if int(team_id) != team.id and not is_admin():
+                    raise ByoaException("Non admin tried to view another team's deploy.", ["You are not an admin, you trickster"], 403)
+                bcd = get_or_create_byoa_cd(challenge_id, team_id)
+            else:
+                bcd = get_or_create_byoa_cd(challenge_id, team.id)
+            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__)
+        except ByoaException as be:
+            return be.get_response_from_exception()
+
 
     @app.route('/plugins/byoa_challenges/deploy/<challenge_id>/<team_id>', methods=['GET'])
     @app.route('/plugins/byoa_challenges/deploy/<challenge_id>', methods=['GET'])
-    def view_byoa_challenge_deploy(challenge_id, team_id=None):
-        if not authed():
-            return render_template('errors/403.html', error="You are not logged in")
-        challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
-        if not challenge:
-            return render_template('errors/500.html', error="Invalid challenge_id! This challenge_id does not exist.")
-            # return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
-
-        team: Teams = get_current_team()
-        if team_id is not None:
-            if int(team_id) != team.id and not is_admin():
-                return render_template('errors/403.html', error="You are not an admin, you trickster")
-            bcd = get_or_create_byoa_cd(challenge_id, team_id)
-        else:
-            bcd = get_or_create_byoa_cd(challenge_id, team.id)
-        return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__)
-
-    @app.route('/plugins/byoa_challenges/deploy/<challenge_id>/<team_id>', methods=['POST'])
-    @app.route('/plugins/byoa_challenges/deploy/<challenge_id>', methods=['POST'])
+    @requires_auth
     def deploy_byoa_challenge(challenge_id, team_id=None):
+        try:
+            # authed_or_fail()
+            # make sure challenge exists
+            challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
+            if not challenge:
+                raise ByoaException("This challenge_id does not exist.", ["Invalid challenge_id! This challenge_id does not exist."], 404)
+
+            team: Teams = get_current_team()
+            if team_id is not None:
+                if int(team_id) != team.id and not is_admin():
+                    raise ByoaException("Non admin tried to view another team's deploy.", ["You are not an admin, you trickster"], 403)
+            else:
+                team_id = team.id
+            # return Response('{"challenge_id": '+challenge_id+', "team_id": '+str(team.id)+'}', status=409, mimetype='application/json')
+            bcd = get_or_create_byoa_cd(challenge_id, team_id)
+            # Check current deploy status
+            if bcd.deploy_status != 'NOT_DEPLOYED':
+                return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
+                                       banner={"msg": f"Unable to deploy challenge because the current deploy status is '{bcd.deploy_status}'! You can only deploy if the status is NOT_DEPLOYED", "level": "danger"}), 409
+                # raise Exception('Unable to deploy challenge because the current deploy status is '+bcd.deploy_status+'! You can only deploy if the status is NOT_DEPLOYED')
+
+            # deploy and set status in DB
+            bcd.deploy_challenge()
+            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
+                                   banner={"msg": "Deploy Job started! Refresh this page to check the deploy status.", "level": "info"})
+        except ByoaException as be:
+            return be.get_response_from_exception()
+
+
+def requires_auth(function):
+    @wraps(function)
+    def authed_or_fail(*args, **kwargs):
         if not authed():
-            return render_template('errors/403.html', error="You are not logged in")
-        # make sure challenge exists
-        challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
-        if not challenge:
-            return render_template('errors/500.html', error="Invalid challenge_id! This challenge_id does not exist.")
-
-        team: Teams = get_current_team()
-        if team_id is not None:
-            if int(team_id) != team.id and not is_admin():
-                return render_template('errors/403.html', error="You are not an admin, you trickster")
-        else:
-            team_id = team.id
-        # return Response('{"challenge_id": '+challenge_id+', "team_id": '+str(team.id)+'}', status=409, mimetype='application/json')
-        bcd = get_or_create_byoa_cd(challenge_id, team_id)
-        # Check current deploy status
-        if bcd.deploy_status != 'NOT_DEPLOYED':
-            return Response('{"errors": ["Unable to deploy challenge because the current deploy status is '+bcd.deploy_status+'! You can only deploy if the status is NOT_DEPLOYED"]}', status=409, mimetype='application/json')
-            # raise Exception('Unable to deploy challenge because the current deploy status is '+bcd.deploy_status+'! You can only deploy if the status is NOT_DEPLOYED')
-
-        # deploy and set status in DB
-        bcd.deploy_challenge()
-        return Response('{"data":{"msg": "Successfully Deployed Challenge"}}', mimetype='application/json')
+            ex = ByoaException("User is not logged in", None, 401)
+            return ex.get_response_from_exception()
+        return function(*args, **kwargs)
+    return authed_or_fail
