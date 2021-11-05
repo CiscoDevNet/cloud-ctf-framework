@@ -3,6 +3,25 @@
 Custom Cisco plugin for BYOA challenges
 
 ## How it works
+
+You can view all deploys at uri `/plugins/byoa_challenges/deploys`  
+Admin users will see all deploys, regular users will only see their deploys.  
+
+You can view specific challenge deploys details at uri `/plugins/byoa_challenges/deploy/<challenge_id>`
+
+Admins can add optional `<team_id>` to end of the challenge deploy paths to view a specific teams challenge:  
+Example: `/plugins/byoa_challenges/deploy/<challenge_id>/<team_id>`
+
+If a non admin goes to another team id link, it will return 403.
+
+Doing a POST request to this url will deploy that challenge.  
+
+Currently the plan is all deploys, validations, destroys will just be container K8s jobs.
+We can move this to native python if we want, but using k8s will make it easier to be asynchronous and to check status.
+
+
+# OLD Idea
+## How it works
 When you add a new byoa challenge you must provide additional parameter(s):
 
 `api_base_uri` - The base URI for where this challenge should be interacted with.  
