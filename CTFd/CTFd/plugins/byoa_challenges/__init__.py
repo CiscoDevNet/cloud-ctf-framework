@@ -62,20 +62,20 @@ class ByoaChallengeDeploys(db.Model):
         self.ctf_metadata = ctf_metadata
 
     def get_byoa_team_aws_info(self) -> ByoaTeamAwsInfo:
-        ret = ByoaTeamAwsInfo()
         # AWS_REGION
         field_entry = TeamFieldEntries.query.filter_by(name='AWS_REGION').first()
-        ret.AWS_REGION = field_entry.value
+        aws_region = field_entry.value
 
         # AWS_ACCESS_KEY_ID
         field_entry = TeamFieldEntries.query.filter_by(name='AWS_ACCESS_KEY_ID').first()
-        ret.AWS_ACCESS_KEY_ID = field_entry.value
+        aws_access_key_id = field_entry.value
 
         # AWS_SECRET_ACCESS_KEY
         field_entry = TeamFieldEntries.query.filter_by(name='AWS_SECRET_ACCESS_KEY').first()
-        ret.AWS_SECRET_ACCESS_KEY = field_entry.value
+        aws_secret_access_key = field_entry.value
 
-        return ret
+        return ByoaTeamAwsInfo(AWS_REGION=aws_region, AWS_ACCESS_KEY_ID=aws_access_key_id,
+                               AWS_SECRET_ACCESS_KEY=aws_secret_access_key)
 
     def deploy_challenge(self):
         if self.deploy_status != 'NOT_DEPLOYED':
@@ -311,6 +311,7 @@ def load(app):
     register_plugin_assets_directory(
         app, base_path="/plugins/byoa_challenges/assets/"
     )
+
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     @app.route('/plugins/byoa_challenges/deploys', methods=['GET'])
     def view_byoa_deploys():
@@ -328,14 +329,26 @@ def load(app):
         return render_template('cisco/byoa_challenges/byoa_deploys.html', deployments=deployments)
         # return {"success": True, "team": team}
 
-    @app.route('/plugins/byoa_challenges/deploy/<challenge_id>', methods=['POST', 'GET'])
+    @app.route('/plugins/byoa_challenges/deploy/<challenge_id>', methods=['GET'])
+    def view_byoa_challenge_deploy(challenge_id):
+        if not authed():
+            return render_template('errors/403.html', error="You are not logged in")
+        challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
+        if not challenge:
+            return render_template('errors/500.html', error="Invalid challenge_id! This challenge_id does not exist.")
+            # return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
+        team: Teams = get_current_team()
+        bcd = get_or_create_byoa_cd(challenge_id, team.id)
+        return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__)
+
+    @app.route('/plugins/byoa_challenges/deploy/<challenge_id>', methods=['POST'])
     def deploy_byoa_challenge(challenge_id):
         if not authed():
             return render_template('errors/403.html', error="You are not logged in")
         # make sure challenge exists
-        challenge = Challenges.query.filter_by(id=challenge_id).first()
+        challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
         if not challenge:
-            return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
+            return render_template('errors/500.html', error="Invalid challenge_id! This challenge_id does not exist.")
 
         team: Teams = get_current_team()
         # return Response('{"challenge_id": '+challenge_id+', "team_id": '+str(team.id)+'}', status=409, mimetype='application/json')

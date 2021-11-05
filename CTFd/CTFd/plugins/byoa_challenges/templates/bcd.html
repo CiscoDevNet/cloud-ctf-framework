@@ -1,0 +1,26 @@
+{% extends "core/base.html" %}
+
+{% block content %}
+    <div class="container">
+        <h2>BYOA Challenge Deployment</h2>
+        {% if error %}
+            {{ error }}
+        {% endif %}
+        {% if bcd %}
+            <h3>{{ challenge.name }} (ID: {{ challenge.id }})</h3>
+            <div class="row">
+                <p>Deploy status: {{ bcd.deploy_status }}</p>
+            </div>
+            <div class="row">
+            <form method="post">
+                <button id="challenge-submit" class="challenge-submit" type="submit"
+                        formaction="/plugins/byoa_challenges/deploy/{{ challenge.id }}" >
+                    Deploy
+                </button>
+            </form>
+            </div>
+            {{ bcd|pprint}}
+            {{ challenge|pprint}}
+        {% endif %}
+    </div>
+{% endblock %}
