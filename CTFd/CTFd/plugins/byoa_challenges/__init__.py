@@ -1,4 +1,5 @@
 import collections
+import pprint
 
 import boto3
 from attr import dataclass
@@ -218,7 +219,9 @@ class ByoaChallenge(BaseChallenge):
         :param challenge:
         :return: Challenge object, data dictionary to be returned to the user
         """
-        # byoac = ByoaChallengeEntry.query.filter_by(challenge_id=challenge.id).first()
+        import logging
+        log("ciscoCTF", f"challenge_id is '{challenge.id}'.")
+        byoac = ByoaChallengeEntry.query.filter_by(challenge_id=challenge.id).first()
         #ByoaChallengeEntry.query.with_polymorphic('*').filter_by(challenge_id=challenge.id).first() #
         data = {
             "id": challenge.id,
@@ -229,7 +232,7 @@ class ByoaChallenge(BaseChallenge):
             "state": challenge.state,
             "max_attempts": challenge.max_attempts,
             "type": challenge.type,
-            # "api_base_uri": byoac.api_base_uri,
+            "api_base_uri": byoac.api_base_uri,
             "type_data": {
                 "id": cls.id,
                 "name": cls.name,
@@ -238,9 +241,12 @@ class ByoaChallenge(BaseChallenge):
             }
         }
         team: Teams = get_current_team()
-        # byoac_cd = ByoaChallengeDeploys.query.filter_by(challenge_id=challenge.id,team_id=team.id).first()
-        byoac_cd = get_or_create_byoa_cd(challenge.id, team.id)
-        data["deploy_status"] = byoac_cd.deploy_status
+        if not team:
+            data["deploy_status"] = "UNKNOWN_USER_IS_NOT_MEMBER_OF_A_TEAM"
+        else:
+            # byoac_cd = ByoaChallengeDeploys.query.filter_by(challenge_id=challenge.id,team_id=team.id).first()
+            byoac_cd = get_or_create_byoa_cd(challenge.id, team.id)
+            data["deploy_status"] = byoac_cd.deploy_status
         return data
 
 
