@@ -36,7 +36,7 @@ class ByoaChallengeEntry(Challenges):
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE"), primary_key=True
     )
     # Stores the base uri for where validate/deploy/destroy
-    api_base_uri = db.Column(db.String)
+    api_base_uri = db.Column(db.String(128))
 
     def __init__(self, api_base_uri, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -61,7 +61,7 @@ class ByoaChallengeDeploys(db.Model):
     )
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete="CASCADE"))
     # NOT_DEPLOYED, DEPLOYING, DEPLOYED, ERROR_DEPLOYING, SOLVED
-    deploy_status = db.Column(db.String, default="NOT_DEPLOYED")
+    deploy_status = db.Column(db.String(64), default="NOT_DEPLOYED")
     # stores random schemaless info, like messages from the deploy, or variables from the deploy, etc.
     ctf_metadata = db.Column(db.JSON, default=None)
 
@@ -88,8 +88,8 @@ class ByoaChallengeDeploys(db.Model):
 
     def deploy_challenge(self):
         if self.deploy_status != 'NOT_DEPLOYED':
-            raise Exception("call to deploy_challenge and the deploy_status was not currently set to NOT_DEPLOYED! It is currently "+self.deploy_status)
-
+            err = "call to deploy_challenge and the deploy_status was not currently set to NOT_DEPLOYED! It is currently "+self.deploy_status
+            raise ByoaException(err, [err], 400)
         self.deploy_status = 'DEPLOYING'
         db.session.commit()
 
@@ -110,6 +110,25 @@ class ByoaChallengeDeploys(db.Model):
         job = run_k8s_job(batch_v1, k8s_job)
         # log("K8s Job created. status='%s'" % str(job.status))
         # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
+
+
+    def destroy_challenge(self):
+        if self.deploy_status != 'DEPLOYED':
+            err = "call to destroy_challenge and the deploy_status was not currently set to DEPLOYED! It is currently "+self.deploy_status
+            raise ByoaException(err, [err], 400)
+
+        self.deploy_status = 'DESTROYING'
+        db.session.commit()
+        # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
+
+
+    def validate_challenge(self):
+        if self.deploy_status != 'DEPLOYED':
+            err = "call to validate_challenge and the deploy_status was not currently set to DEPLOYED! It is currently "+self.deploy_status
+            raise ByoaException(err, [err], 400)
+
+    # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
+
 
     def get_challenge_vpc(self):
         '''
@@ -199,7 +218,7 @@ class ByoaChallenge(BaseChallenge):
         :param challenge:
         :return: Challenge object, data dictionary to be returned to the user
         """
-        byoac = ByoaChallengeEntry.query.filter_by(challenge_id=challenge.id).first()
+        # byoac = ByoaChallengeEntry.query.filter_by(challenge_id=challenge.id).first()
         #ByoaChallengeEntry.query.with_polymorphic('*').filter_by(challenge_id=challenge.id).first() #
         data = {
             "id": challenge.id,
@@ -210,7 +229,7 @@ class ByoaChallenge(BaseChallenge):
             "state": challenge.state,
             "max_attempts": challenge.max_attempts,
             "type": challenge.type,
-            "api_base_uri": byoac.api_base_uri,
+            # "api_base_uri": byoac.api_base_uri,
             "type_data": {
                 "id": cls.id,
                 "name": cls.name,
