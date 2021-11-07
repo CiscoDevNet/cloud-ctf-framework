@@ -73,17 +73,26 @@ class ByoaChallengeDeploys(db.Model):
 
     def get_byoa_team_aws_info(self) -> ByoaTeamAwsInfo:
         # AWS_REGION
-        field_entry = TeamFieldEntries.query.filter_by(name='AWS_REGION').first()
-        aws_region = field_entry.value
+        team: Teams = get_current_team()
+
+        for f in team.field_entries:
+            if f.name == "AWS_SECRET_ACCESS_KEY":
+                aws_secret_access_key = f.value
+            elif f.name == "AWS_ACCESS_KEY_ID":
+                aws_access_key_id = f.value
+            elif f.name == "AWS_REGION":
+                aws_region = f.value
+
+        #field_entry = TeamFieldEntries.query.join(Teams).filter(Teams.id == self.team_id, TeamFieldEntries.name =='AWS_REGION').first()
+        #aws_region = field_entry.value
 
         # AWS_ACCESS_KEY_ID
-        field_entry = TeamFieldEntries.query.filter_by(name='AWS_ACCESS_KEY_ID').first()
-        aws_access_key_id = field_entry.value
+        #field_entry = TeamFieldEntries.query.filter_by(name='AWS_ACCESS_KEY_ID').first()
+        #aws_access_key_id = field_entry.value
 
         # AWS_SECRET_ACCESS_KEY
-        field_entry = TeamFieldEntries.query.filter_by(name='AWS_SECRET_ACCESS_KEY').first()
-        aws_secret_access_key = field_entry.value
-
+        #field_entry = TeamFieldEntries.query.filter_by(name='AWS_SECRET_ACCESS_KEY').first()
+        #aws_secret_access_key = field_entry.value
         return ByoaTeamAwsInfo(AWS_REGION=aws_region, AWS_ACCESS_KEY_ID=aws_access_key_id,
                                AWS_SECRET_ACCESS_KEY=aws_secret_access_key)
 
@@ -91,8 +100,8 @@ class ByoaChallengeDeploys(db.Model):
         if self.deploy_status != 'NOT_DEPLOYED':
             err = "call to deploy_challenge and the deploy_status was not currently set to NOT_DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400)
-        self.deploy_status = 'DEPLOYING'
-        db.session.commit()
+        #self.deploy_status = 'DEPLOYING'
+        #db.session.commit()
 
         # Check VPC count
         vpcs = self.get_all_aws_vpcs()
