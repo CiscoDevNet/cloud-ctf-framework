@@ -1,4 +1,4 @@
 {
-  "name": "jgroetzi test CTFd Plugin",
-  "route": "/plugins/jgroetzi-test-1"
+  "name": "CTFd Plugin to deploy challenge1",
+  "route": "/plugins/chall1-deploy-plugin"
 }
