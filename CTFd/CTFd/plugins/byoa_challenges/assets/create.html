@@ -1,0 +1,30 @@
+{% extends "admin/challenges/create.html" %}
+
+{% block header %}
+<div class="alert alert-secondary" role="alert">
+    Bring Your Own Account (BYOA) challenges are ones that require the Team to provide their own AWS account. These challenges will be provisioned in their own accounts.
+</div>
+{% endblock %}
+
+
+{% block value %}
+    <div class="form-group">
+        <label>
+            Value:<br>
+            <small class="form-text text-muted">
+                This is how many points are rewarded for solving this challenge.
+            </small>
+        </label>
+        <input type="number" class="form-control" name="value" placeholder="Enter value" required>
+        <label for="api_base_uri">Api Base URI<br>
+            <small class="form-text text-muted">
+                This is the base API URI. blah
+            </small>
+        </label>
+        <input type="text" class="form-control" name="api_base_uri" placeholder="Enter api base uri" required>
+    </div>
+{% endblock %}
+
+{% block type %}
+<input type="hidden" value="byoa" name="type" id="chaltype">
+{% endblock %}

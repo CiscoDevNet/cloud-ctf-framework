@@ -1,0 +1,33 @@
+<html>
+<head>
+    <script>
+        function deploy() {
+            fetch("/plugins/chall1-deploy-plugin", {
+                method: "GET",
+                headers: {
+                    'Accept': 'application/json'
+                },
+            }).then(response => response.json())
+            .then(data => document.getElementById("test").innerHTML=data.Note);
+        }
+    </script>
+    <script>
+        function destroy() {
+            fetch("/plugins/chall1-destroy-plugin", {
+                method: "GET",
+                headers: {
+                    'Accept': 'application/json'
+                },
+            }).then(response => response.json())
+            .then(data => document.getElementById("test").innerHTML=data.Note);
+        }
+    </script>
+</head>
+
+<body>
+    <button style="background-color:green;" onClick="deploy()">Deploy</button>
+	<button style="background-color:yellow;">Validate</button>
+	<button style="background-color:red;" onClick="destroy()">Destroy</button>
+    <p id="test"></p>
+</body>
+</html>

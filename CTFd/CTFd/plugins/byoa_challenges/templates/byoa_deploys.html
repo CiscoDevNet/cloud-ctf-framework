@@ -1,0 +1,61 @@
+{% extends "core/base.html" %}
+
+{% block stylesheets %}
+    <link rel="stylesheet" href="{{ url_for('views.themes', theme='admin', path='css/challenge-board.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <h2>BYOA Challenge Deployments</h2>
+        <div class="row">
+            <div class="col-md-12">
+                {% if deployments is defined and deployments|length > 0 %}
+                    <div>
+                        <table id="challenges" class="table table-striped border">
+                            <thead>
+                            <tr>
+                                <th class="sort-col text-center"><b>ID</b></th>
+                                <th class="d-none d-md-table-cell d-lg-table-cell sort-col"><b>Challenge</b></th>
+                                <th class="sort-col"><b>Team</b></th>
+                                <th class="d-none d-md-table-cell d-lg-table-cell sort-col text-center"><b>Deploy Status</b></th>
+                                <th><b>Actions</b></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for deployment in deployments %}
+                                <tr>
+                                    <td class="text-center">{{ deployment.id }}</td>
+                                    <td><a href="{{ url_for('admin.challenges_detail', challenge_id=deployment.challenge_id) }}">{{ deployment.challenge_id }}</a></td>
+                                    <td class="d-none d-md-table-cell d-lg-table-cell">{{ deployment.team_id }}</td>
+                                    <td class="d-none d-md-table-cell d-lg-table-cell text-center">{{ deployment.deploy_status }}</td>
+                                    <td>
+                                        <div class="row submit-row">
+                                            <div class="col-md-6 form-group key-submit">
+                                                <form>
+                                                    <button id="challenge-submit" class="challenge-submit" type="submit" formaction="/plugins/byoa_challenges/view/{{ deployment.challenge_id }}/{{ deployment.team_id }}">
+                                                        View Deploy Details
+                                                    </button>
+                                                </form>
+
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {%  else %}
+                    <div>
+                    <p>There are no BYOA Deployments! You need to view a challenge that is a BYOA type first, then they will show up here.</p>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+    {% if testvar %}
+        <p>it is working! {{ testvar }}</p>
+    {% endif %}
+{% endblock %}
+
