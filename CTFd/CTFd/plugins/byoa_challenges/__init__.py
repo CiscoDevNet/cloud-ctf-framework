@@ -110,11 +110,13 @@ class ByoaChallengeDeploys(db.Model):
             return {"errors": ["VPC greater than 5...In AWS, by default, only 5 VPC's are allowed. Please delete one or more VPC to get the challenge deployed."]}
 
         # Do the deploy
-        aws_info = self.get_byoa_team_aws_info()
+        # aws_info = self.get_byoa_team_aws_info()
         config.load_kube_config()
         batch_v1 = k8sclient.BatchV1Api()
         d_info = self.get_byoa_team_aws_info()
-        k8s_job = create_k8s_job_object(d_info, self.get_k8s_job_name('deploy'), self.get_ccc_image_name('deploy'),
+        job_name=self.get_k8s_job_name('deploy')
+        log("CiscoCTF", "job_name is "+job_name)
+        k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
                                         {"type": "challenge-deploy", "ctf-challenge-id": self.challenge_id,
                                          "ctf-team-id": self.team_id})
         job = run_k8s_job(batch_v1, k8s_job)
