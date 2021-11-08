@@ -14,7 +14,7 @@ set-env:
 	set -o allexport && source .env && set +o allexport
 
 show-env:
-	env |grep -E 'AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY'
+	env |grep -E 'AWS_ACCESS_KEY_ID|AWS_SECRET_ACCESS_KEY|AWS_REGION'
 
 install:
 	brew install terraform
