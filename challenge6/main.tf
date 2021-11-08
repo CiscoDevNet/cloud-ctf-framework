@@ -76,10 +76,10 @@ resource "aws_default_network_acl" "default" {
 */
 #Subnets This is a public subnet 
 resource "aws_subnet" "my-public" {
-    vpc_id = aws_vpc.ctf-vpc.id
+    vpc_id = aws_vpc.ssrf-vpc.id
     cidr_block = "12.0.1.0/24"
     map_public_ip_on_launch = "true"
-    availability_zone = "ap-south-1a"
+    availability_zone = "us-east-1a"
     tags = {
         Name = "ssrf-public-1"
     }
@@ -88,10 +88,10 @@ resource "aws_subnet" "my-public" {
 }
 # Subnet This is a private subnet
 resource "aws_subnet" "my-private" {
-    vpc_id = aws_vpc.ctf-vpc.id
+    vpc_id = aws_vpc.ssrf-vpc.id
     cidr_block = "12.0.2.0/24"
     map_public_ip_on_launch = "false"
-    availability_zone = "ap-south-1a"
+    availability_zone = "us-east-1a"
     tags = {
       Name = "ssrf-private-1"
     }
@@ -101,7 +101,7 @@ resource "aws_subnet" "my-private" {
 
 #Internet GW
 resource "aws_internet_gateway" "main-igw" {
-    vpc_id = aws_vpc.ctf-vpc.id
+    vpc_id = aws_vpc.ssrf-vpc.id
     tags = {
         Name = "SSRFInternetGW"
     }
@@ -110,7 +110,7 @@ resource "aws_internet_gateway" "main-igw" {
 
 #Route table This basically calls the Internet gateway 
 resource "aws_route_table" "main-public" {
-    vpc_id = aws_vpc.ctf-vpc.id
+    vpc_id = aws_vpc.ssrf-vpc.id
     route {
         cidr_block = "0.0.0.0/0"
         gateway_id = aws_internet_gateway.main-igw.id
@@ -144,7 +144,7 @@ resource "aws_nat_gateway" "nat-gw" {
 
 #VPC Setup for NAT
 resource "aws_route_table" "main-private" {
-    vpc_id = aws_vpc.ctf-vpc.id
+    vpc_id = aws_vpc.ssrf-vpc.id
     route {
         cidr_block = "0.0.0.0/0"
         nat_gateway_id = aws_nat_gateway.nat-gw.id
@@ -166,7 +166,7 @@ resource "aws_route_table_association" "main-private-1-a" {
 
 resource "aws_security_group" "vpc_security_group"{
     name = "ctf_security_group"
-    vpc_id = aws_vpc.ctf-vpc.id
+    vpc_id = aws_vpc.ssrf-vpc.id
     dynamic "ingress"{
         for_each = toset(local.ports_in)
         content{
@@ -200,7 +200,7 @@ resource "aws_security_group" "vpc_security_group"{
 
 output "vpc_id" {
     description = "vpc id"
-    value = aws_vpc.ctf-vpc.id
+    value = aws_vpc.ssrf-vpc.id
 }
 
 output "public_ip"{

@@ -1,7 +1,7 @@
 
 
 resource "aws_instance" "chall1http"{
-    ami = "ami-041d6256ed0f2061c"
+    ami = "ami-01cc34ab2709337aa"
     instance_type="t2.micro"
     subnet_id = aws_subnet.my-public.id
     

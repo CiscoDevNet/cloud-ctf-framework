@@ -1,0 +1,4 @@
+{
+  "name": "CTFd Plugin to deploy challenge2",
+  "route": "/plugins/chall2-deploy-plugin"
+}
