@@ -43,8 +43,13 @@
             {{ bcd|pprint}}
             {{ challenge|pprint}}
         {% endif %}
+        {% block challenge_content %}
+            {% if bcd.ctf_metadata %}
+                {% if bcd.ctf_metadata.status_summary %}
+                    <p><strong>Current status summary: {{  bcd.ctf_metadata.status_summary }}</strong></p>
+                {%  endif %}
+            {%  endif %}
+            <!-- Put custom code for each challenge here -->
+        {% endblock %}
     </div>
-    {% block challenge_content %}
-        <!-- Put custom code for each challenge here -->
-    {% endblock %}
 {% endblock %}

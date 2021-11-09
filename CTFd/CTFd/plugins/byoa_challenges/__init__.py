@@ -107,7 +107,7 @@ class ByoaChallengeDeploys(db.Model):
         md = self.ctf_metadata
         if not md:
             md = {}
-        md.status_summary = summary_message
+        md["status_summary"] = summary_message
         self.ctf_metadata = md
         db.session.commit()
 
@@ -116,6 +116,7 @@ class ByoaChallengeDeploys(db.Model):
             err = "You can only destroy challenge when the deploy_status is DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
 
+        self.set_deploy_status_summary("I r destroying thangs")
         self.deploy_status = 'DESTROYING'
         db.session.commit()
         # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
@@ -162,7 +163,7 @@ class ByoaChallengeDeploys(db.Model):
             err = "You can only reset a chellenge deployment when it is in status FAILED_DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
         self.deploy_status = 'NOT_DEPLOYED'
-        db.session.commit()
+        self.set_deploy_status_summary("I Reset thangs")
 
     def deploy_challenge(self):
         if self.deploy_status != 'NOT_DEPLOYED':
