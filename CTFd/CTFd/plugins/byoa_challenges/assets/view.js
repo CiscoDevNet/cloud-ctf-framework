@@ -15,16 +15,20 @@ CTFd._internal.challenge.postRender = function () {
 
     document.getElementById("challenge-cur-deploy-status-text").innerHTML = "Current Deploy Status for your team: "+this.data.deploy_status;
 
+    deploy_btn = document.getElementById("challenge-deploy-btn")
+
     if(this.data.deploy_status === 'DEPLOYING') {
+        deploy_btn.classList.add("hidden");
         deploy_btns = document.getElementById("deploy-btns")
         deploy_btns.classList.add("hidden");
 
         loader = document.getElementById("deploy-loader")
         loader.classList.remove("hidden");
     }else if(this.data.deploy_status !== 'NOT_DEPLOYED'){
-        deploy_btn = document.getElementById("challenge-deploy-btn")
-        deploy_btn.disabled = true;
+        deploy_btn.classList.add("hidden");
         deploy_btn.title = "You can only deploy when the status is NOT_DEPLOYED"
+    }else{//it is NOT_DEPLOYED
+
     }
 }
 

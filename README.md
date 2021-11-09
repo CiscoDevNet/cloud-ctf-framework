@@ -53,6 +53,11 @@ which will drop you into the container at root of hte CTFd project (/opt/CTFd)
 The database for local development is sqllite, and the file will be at `.data/ctfd.db`, 
 which is linked into the running container at `/opt/CTFd/CTFd/ctfd.db`
 
+### Add k8s config to test k8s jobs
+Put your kube config file in location `.data/kube-config` if you want to test deploy/destroy k8s jobs.
+The dockerfile will symlink this file to `/home/ctfd/.kube/config` so if it exists it will just work. 
+When in production this file is passed in as a volume which will overwrite the symlink.
+
 ### Stop CTFd
 ```bash
 make stop-ctfd

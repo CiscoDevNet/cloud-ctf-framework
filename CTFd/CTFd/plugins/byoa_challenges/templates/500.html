@@ -8,7 +8,12 @@
 			<div class="pt-5 mt-5 text-center">
 				<h1>Server Error</h1>
 				<hr class="w-50">
-				<h2>{{ errors.join("<br>") }}</h2>
+                {% for error in errors %}
+                    <p>{{error}}</p>
+                    {% if not loop.last %}
+                        {{'<br>'}}
+                    {% endif %}
+                {% endfor %}
 			</div>
 		</div>
 	</div>

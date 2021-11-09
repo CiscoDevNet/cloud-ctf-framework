@@ -12,17 +12,39 @@
             {{ error }}
         {% endif %}
         {% if bcd %}
-            <h3>{{ challenge.name }} (ID: {{ challenge.id }})</h3>
+            <h3>{{ challenge.name }}</h3>
+            <p>Local challenge ID: {{ challenge.id }}<br>
+                Admin challenge Reference: {{ challenge.api_base_uri }}
+            </p>
             <div class="row">
                 <p>Deploy status: {{ bcd.deploy_status }}</p>
             </div>
-            <div class="row">
-                <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}"><button id="challenge-submit" class="challenge-submit">
-                    Deploy
-                </button></a>
+            <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
+                <div class="col-md-3">
+                    <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}">
+                        <button class="btn btn-outline-primary btn-outlined" id="challenge-deploy-btn">Deploy</button>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/plugins/byoa_challenges/validate/{{ challenge.id }}">
+                        <button class="btn btn-outline-success btn-outlined" id="challenge-validate-btn" >Validate</button>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/plugins/byoa_challenges/destroy/{{ challenge.id }}">
+                        <button class="btn btn-outline-danger btn-outlined" id="challenge-destroy-btn" >Destroy</button>
+                    </a>
+                </div>
+                <div class="col-md-3">
+                    <a href="/plugins/byoa_challenges/reset/{{ challenge.id }}"><button class="btn btn-outline-secondary btn-outlined" id="challenge-reset-btn"
+                    >Reset Failed</button></a>
+                </div>
             </div>
             {{ bcd|pprint}}
             {{ challenge|pprint}}
         {% endif %}
     </div>
+    {% block challenge_content %}
+        <!-- Put custom code for each challenge here -->
+    {% endblock %}
 {% endblock %}

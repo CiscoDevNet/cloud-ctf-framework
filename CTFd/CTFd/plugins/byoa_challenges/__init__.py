@@ -1,10 +1,11 @@
 import collections
+import json
 import pprint
 
 import boto3
 from attr import dataclass
 from flask import Blueprint, render_template, Response
-from kubernetes.client import V1Job
+from kubernetes.client import V1Job, ApiException
 from werkzeug.routing import Rule
 
 from CTFd.models import Challenges, db, TeamFieldEntries
@@ -97,38 +98,23 @@ class ByoaChallengeDeploys(db.Model):
         return ByoaTeamAwsInfo(AWS_REGION=aws_region, AWS_ACCESS_KEY_ID=aws_access_key_id,
                                AWS_SECRET_ACCESS_KEY=aws_secret_access_key)
 
-    def deploy_challenge(self):
-        if self.deploy_status != 'NOT_DEPLOYED':
-            err = "call to deploy_challenge and the deploy_status was not currently set to NOT_DEPLOYED! It is currently "+self.deploy_status
-            raise ByoaException(err, [err], 400)
-        #self.deploy_status = 'DEPLOYING'
-        #db.session.commit()
+    def fail_deploy(self, fail_msg, status_code=500):
+        self.deploy_status = "FAILED_DEPLOY"
+        self.set_deploy_status_summary(fail_msg)
+        raise ByoaException(fail_msg, [fail_msg], status_code, self)
 
-        # Check VPC count
-        vpcs = self.get_all_aws_vpcs()
-
-        if len(vpcs)>=5:
-            return {"errors": ["VPC greater than 5...In AWS, by default, only 5 VPC's are allowed. Please delete one or more VPC to get the challenge deployed."]}
-
-        # Do the deploy
-        # aws_info = self.get_byoa_team_aws_info()
-        config.load_kube_config()
-        batch_v1 = k8sclient.BatchV1Api()
-        d_info = self.get_byoa_team_aws_info()
-        job_name=self.get_k8s_job_name('deploy')
-        log("CiscoCTF", "job_name is "+job_name)
-        k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
-                                        {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
-                                         "ctf-team-id": str(self.team_id)})
-        job = run_k8s_job(batch_v1, k8s_job, "jgroetzi-ctf-dev")
-        # log("K8s Job created. status='%s'" % str(job.status))
-        # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
-
+    def set_deploy_status_summary(self, summary_message: str):
+        md = self.ctf_metadata
+        if not md:
+            md = {}
+        md.status_summary = summary_message
+        self.ctf_metadata = md
+        db.session.commit()
 
     def destroy_challenge(self):
         if self.deploy_status != 'DEPLOYED':
-            err = "call to destroy_challenge and the deploy_status was not currently set to DEPLOYED! It is currently "+self.deploy_status
-            raise ByoaException(err, [err], 400)
+            err = "You can only destroy challenge when the deploy_status is DEPLOYED! It is currently "+self.deploy_status
+            raise ByoaException(err, [err], 400, self)
 
         self.deploy_status = 'DESTROYING'
         db.session.commit()
@@ -137,13 +123,11 @@ class ByoaChallengeDeploys(db.Model):
 
     def validate_challenge(self):
         if self.deploy_status != 'DEPLOYED':
-            err = "call to validate_challenge and the deploy_status was not currently set to DEPLOYED! It is currently "+self.deploy_status
-            raise ByoaException(err, [err], 400)
+            err = "You can only validate challenge if deploy_status is DEPLOYED! It is currently "+self.deploy_status
+            raise ByoaException(err, [err], 400, self)
 
         if self.api_base_path == "chall1-destroy-plugin":
             validate_chalenge()
-
-    # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
 
 
     def get_challenge_vpc(self):
@@ -169,6 +153,51 @@ class ByoaChallengeDeploys(db.Model):
             # This likely means we have a bug...somewhere.
             raise Exception("Found more than 1 VPC for this challenge! This should not be possible, please ask admins for assistance.")
         return None
+
+    # TODO NEXT: figure out what we need to return here and how to relay info to end user inside of challenge
+
+    def reset_challenge_deploy(self):
+        # TODO remove check for != DEPLOYING and DESTROYING after done development
+        if self.deploy_status != 'FAILED_DEPLOYED' and self.deploy_status != 'DEPLOYING' and self.deploy_status != 'DESTROYING':
+            err = "You can only reset a chellenge deployment when it is in status FAILED_DEPLOYED! It is currently "+self.deploy_status
+            raise ByoaException(err, [err], 400, self)
+        self.deploy_status = 'NOT_DEPLOYED'
+        db.session.commit()
+
+    def deploy_challenge(self):
+        if self.deploy_status != 'NOT_DEPLOYED':
+            err = "call to deploy_challenge and the deploy_status was not currently set to NOT_DEPLOYED! It is currently "+self.deploy_status
+            raise ByoaException(err, [err], 400, self)
+        self.deploy_status = 'DEPLOYING'
+        db.session.commit()
+
+        # Check VPC count
+        vpcs = self.get_all_aws_vpcs()
+
+        if len(vpcs)>=5:
+            self.fail_deploy("VPC greater than 5...In AWS, by default, only 5 VPC's are allowed. Please delete one or more VPC to get the challenge deployed.", 409)
+
+        # Do the deploy
+        # aws_info = self.get_byoa_team_aws_info()
+        config.load_kube_config()
+        batch_v1 = k8sclient.BatchV1Api()
+        d_info = self.get_byoa_team_aws_info()
+        job_name=self.get_k8s_job_name('deploy')
+        log("CiscoCTF", "job_name is "+job_name)
+        try:
+            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
+                                            {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
+                                            "ctf-team-id": str(self.team_id)})
+            job = run_k8s_job(batch_v1, k8s_job, "jgroetzi-ctf-dev")
+            # log("K8s Job created. status='%s'" % str(job.status))
+
+        except ApiException as ae:
+            log("CiscoCTF", "K8s exception: {body}", body=ae.body)
+            ae_dict = json.loads(ae.body)
+            err = "Failed to deploy! Error (likely need to report to admin): " + ae_dict["message"]
+            raise ByoaException(err, [err], 500, self)
+
+        # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
 
     def get_aws_challenge_vpc_label_name(self):
         return "cisco-cloud-ctf-challenge-"+str(self.challenge_id)
@@ -442,6 +471,77 @@ def load(app):
         except ByoaException as be:
             return be.get_response_from_exception()
 
+    @app.route('/plugins/byoa_challenges/reset/<challenge_id>/<team_id>', methods=['GET'])
+    @app.route('/plugins/byoa_challenges/reset/<challenge_id>', methods=['GET'])
+    @requires_auth
+    def reset_byoa_challenge_deploy(challenge_id, team_id=None):
+        try:
+            challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
+            if not challenge:
+                raise ByoaException("This challenge_id does not exist.", ["Invalid challenge_id! This challenge_id does not exist."], 404)
+                # return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
+
+            team: Teams = get_current_team()
+            if team_id is not None:
+                if int(team_id) != team.id and not is_admin():
+                    raise ByoaException("Non admin tried to view another team's deploy.", ["You are not an admin, you trickster"], 403)
+                bcd = get_or_create_byoa_cd(challenge_id, team_id)
+            else:
+                bcd = get_or_create_byoa_cd(challenge_id, team.id)
+
+            bcd.reset_challenge_deploy()
+            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
+                                   banner={"msg": f"Successfully reset deployment status. You may now try to deploy this.", "level": "success"})
+        except ByoaException as be:
+            return be.get_response_from_exception()
+
+    @app.route('/plugins/byoa_challenges/validate/<challenge_id>/<team_id>', methods=['GET'])
+    @app.route('/plugins/byoa_challenges/validate/<challenge_id>', methods=['GET'])
+    @requires_auth
+    def validate_byoa_challenge_deploy(challenge_id, team_id=None):
+        try:
+            challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
+            if not challenge:
+                raise ByoaException("This challenge_id does not exist.", ["Invalid challenge_id! This challenge_id does not exist."], 404)
+                # return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
+
+            team: Teams = get_current_team()
+            if team_id is not None:
+                if int(team_id) != team.id and not is_admin():
+                    raise ByoaException("Non admin tried to view another team's deploy.", ["You are not an admin, you trickster"], 403)
+                bcd = get_or_create_byoa_cd(challenge_id, team_id)
+            else:
+                bcd = get_or_create_byoa_cd(challenge_id, team.id)
+
+            bcd.validate_challenge()
+            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
+                                   banner={"msg": f"Validation code not implemented yet....", "level": "success"})
+        except ByoaException as be:
+            return be.get_response_from_exception()
+
+    @app.route('/plugins/byoa_challenges/destroy/<challenge_id>/<team_id>', methods=['GET'])
+    @app.route('/plugins/byoa_challenges/destroy/<challenge_id>', methods=['GET'])
+    @requires_auth
+    def destroy_byoa_challenge_deploy(challenge_id, team_id=None):
+        try:
+            challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
+            if not challenge:
+                raise ByoaException("This challenge_id does not exist.", ["Invalid challenge_id! This challenge_id does not exist."], 404)
+                # return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
+
+            team: Teams = get_current_team()
+            if team_id is not None:
+                if int(team_id) != team.id and not is_admin():
+                    raise ByoaException("Non admin tried to view another team's deploy.", ["You are not an admin, you trickster"], 403)
+                bcd = get_or_create_byoa_cd(challenge_id, team_id)
+            else:
+                bcd = get_or_create_byoa_cd(challenge_id, team.id)
+
+            bcd.destroy_challenge()
+            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
+                                   banner={"msg": f"Successfully queued job to destroy deployment.", "level": "success"})
+        except ByoaException as be:
+            return be.get_response_from_exception()
 
 def requires_auth(function):
     @wraps(function)
