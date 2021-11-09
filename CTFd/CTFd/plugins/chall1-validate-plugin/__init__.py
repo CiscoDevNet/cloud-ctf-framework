@@ -6,6 +6,10 @@ from kubernetes import config
 import boto3
 import requests
 
+def validate_chal1():
+    return "testing return chal1"
+
+
 def load(app):
     @app.route('/plugins/chall1-validate-plugin', methods=['POST', 'GET'])
     def view_plugins_chall1_validate():

@@ -20,6 +20,7 @@ from kubernetes import client as k8sclient
 from kubernetes import config
 from .byoa_exception import ByoaException
 from functools import wraps
+from .challenge1 import validate_chalenge
 
 @dataclass
 class ByoaTeamAwsInfo:
@@ -117,9 +118,9 @@ class ByoaChallengeDeploys(db.Model):
         job_name=self.get_k8s_job_name('deploy')
         log("CiscoCTF", "job_name is "+job_name)
         k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
-                                        {"type": "challenge-deploy", "ctf-challenge-id": self.challenge_id,
-                                         "ctf-team-id": self.team_id})
-        job = run_k8s_job(batch_v1, k8s_job)
+                                        {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
+                                         "ctf-team-id": str(self.team_id)})
+        job = run_k8s_job(batch_v1, k8s_job, "jgroetzi-ctf-dev")
         # log("K8s Job created. status='%s'" % str(job.status))
         # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
 
@@ -138,6 +139,9 @@ class ByoaChallengeDeploys(db.Model):
         if self.deploy_status != 'DEPLOYED':
             err = "call to validate_challenge and the deploy_status was not currently set to DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400)
+
+        if self.api_base_path == "chall1-destroy-plugin":
+            validate_chalenge()
 
     # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
 

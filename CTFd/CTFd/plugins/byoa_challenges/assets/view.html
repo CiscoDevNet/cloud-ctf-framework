@@ -5,6 +5,10 @@
         <a href="/plugins/byoa_challenges/deploys" target="_blank">View current deploy statuses for your team</a>
     </div>
 {% endblock %}
+{% block stylesheets %}
+    <link rel="stylesheet" href="/plugins/byoa_challenges/assets/byoa.css">
+{% endblock %}
+
 {% set debug = false %}
 <!-- Below was copied from core/challenge.html for some reason jinja extending this is not working-->
 <div class="modal-dialog" role="document">
@@ -117,11 +121,11 @@
                         <p id="challenge-cur-deploy-status-text">Current Deploy Status for your team: Unknown</p>
                         <a href="/plugins/byoa_challenges/view/{{ challenge.id }}" target="_blank">View Deploy Info</a>
 
-                        <div class="row" style="margin-bottom: 10px; margin-top: 10px;">
+                        <div class="loader hidden" id="deploy-loader"></div>
+                        <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
                             <div class="col-md-4">
-                                <button class="btn btn-outline-primary btn-outlined" id="challenge-deploy-btn"
-                                        onClick="/plugins/byoa_challenges/deploy/{{ challenge.id }}"
-                                >Deploy</button>
+                                <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}"><button class="btn btn-outline-primary btn-outlined" id="challenge-deploy-btn"
+                                >Deploy</button></a>
                             </div>
                             <div class="col-md-4">
                                 <button class="btn btn-outline-success btn-outlined" id="challenge-validate-btn" >Validate</button>

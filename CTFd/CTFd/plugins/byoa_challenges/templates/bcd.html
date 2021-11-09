@@ -17,12 +17,9 @@
                 <p>Deploy status: {{ bcd.deploy_status }}</p>
             </div>
             <div class="row">
-            <form method="post">
-                <button id="challenge-submit" class="challenge-submit" type="submit"
-                        formaction="/plugins/byoa_challenges/deploy/{{ challenge.id }}" >
+                <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}"><button id="challenge-submit" class="challenge-submit">
                     Deploy
-                </button>
-            </form>
+                </button></a>
             </div>
             {{ bcd|pprint}}
             {{ challenge|pprint}}
