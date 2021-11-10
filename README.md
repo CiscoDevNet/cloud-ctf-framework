@@ -166,10 +166,10 @@ make push-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc BYOA_JOB_ACTION=destro
 ```
 
 shortcut commands for above:  
-`build-challenge1-deploy`  
-`push-challenge1-deploy`  
-`build-challenge1-destroy`  
-`push-challenge1-destroy`
+`make build-challenge1-deploy`  
+`make push-challenge1-deploy`  
+`make build-challenge1-destroy`  
+`make push-challenge1-destroy`
 
 ## Other challenges
 The other challenges are all the same structure, so you only need to provide the `CHALLENGE_REF_ARG` and `BYOA_JOB_ACTION` variables.  
