@@ -1,5 +1,6 @@
 import collections
 import json
+import os
 import pprint
 
 import boto3
@@ -619,6 +620,7 @@ def load(app):
         except ByoaException as be:
             return be.get_response_from_exception()
 
+
 def requires_auth(function):
     @wraps(function)
     def authed_or_fail(*args, **kwargs):
@@ -627,3 +629,11 @@ def requires_auth(function):
             return ex.get_response_from_exception()
         return function(*args, **kwargs)
     return authed_or_fail
+
+
+def get_ctf_admin_cloud_aws_cred() -> ByoaTeamAwsInfo:
+    return ByoaTeamAwsInfo(
+        AWS_REGION=os.getenv('CTF_ADMIN_AWS_REGION'),
+        AWS_ACCESS_KEY_ID=os.getenv('CTF_ADMIN_AWS_ACCESS_KEY_ID'),
+        AWS_SECRET_ACCESS_KEY=os.getenv('CTF_ADMIN_AWS_SECRET_ACCESS_KEY')
+    )
