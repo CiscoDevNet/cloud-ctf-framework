@@ -234,11 +234,6 @@ provider "aws" {
 }
 
 terraform {
-    /*backend "s3"{
-        bucket="terraform-infra-state-ctf"
-        key ="team1-chall1"
-        region="ap-south-1"
-    }*/
     backend "local" {
         path = "/var/data/terraform/terraform.tfstate"
     }
