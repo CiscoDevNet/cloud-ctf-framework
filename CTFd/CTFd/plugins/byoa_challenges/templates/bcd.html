@@ -43,7 +43,7 @@
             </div>
 
             {% if k8s_deploy_job %}
-                <h3>Deploy Job</h3>
+                <h3>Latest Job Details</h3>
                 <div class="row">
                     <p>
                         Create Time: {{ k8s_deploy_job._metadata.creation_timestamp }}<br>
@@ -52,6 +52,9 @@
                         Active: {{ k8s_deploy_job._status.active }}<br>
                         Failed: {{ k8s_deploy_job._status.failed }}<br>
                         Succeeded: {{ k8s_deploy_job._status.succeeded }}<br>
+                        {% if k8s_deploy_job._metadata and k8s_deploy_job._metadata.labels and k8s_deploy_job._metadata.labels["job-name"] %}
+                            Job Name: {{ k8s_deploy_job._metadata.labels["job-name"] }}
+                        {% endif %}
                     </p>
                     {% if debug %}
                         DEBUG: K8s Job: {{ k8s_deploy_job|pprint}}

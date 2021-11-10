@@ -505,9 +505,12 @@ def load(app):
                 bcd = get_or_create_byoa_cd(challenge_id, team.id)
 
             k8s_job = None
-            if bcd.deploy_status == 'DEPLOYING':
+            if bcd.deploy_status in ['DEPLOYING', 'DEPLOYED', 'FAILED_DEPLOY']:
                 k8s_job = bcd.get_k8s_job('deploy').__dict__
-            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__, k8s_deploy_job=k8s_job)
+            elif bcd.deploy_status in ['DESTROYING', 'FAILED_DESTROYING', 'DESTROYED']:
+                k8s_job = bcd.get_k8s_job('destroy').__dict__
+            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
+                                   k8s_deploy_job=k8s_job)
         except ByoaException as be:
             return be.get_response_from_exception()
 
