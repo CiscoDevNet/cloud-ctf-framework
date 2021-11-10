@@ -165,6 +165,12 @@ push destroy image:
 make push-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc BYOA_JOB_ACTION=destroy
 ```
 
+shortcut commands for above:  
+`build-challenge1-deploy`  
+`push-challenge1-deploy`  
+`build-challenge1-destroy`  
+`push-challenge1-destroy`
+
 ## Other challenges
 The other challenges are all the same structure, so you only need to provide the `CHALLENGE_REF_ARG` and `BYOA_JOB_ACTION` variables.  
 The only difference between the challenges is the `CHALLENGE_REF_ARG` so these steps are the same except you pass that challenge ref value you want to build. 

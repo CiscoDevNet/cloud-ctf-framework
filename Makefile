@@ -67,3 +67,15 @@ push-bc: build-bc
 
 run-bc:
 	docker run --rm --name $(LOCAL_CONTAINER_NAME_BYOA) --env TF_VAR_AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) --env TF_VAR_AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --env TF_VAR_AWS_REGION=$(AWS_REGION) -v $(LOCAL_TFSTATE_BASE_DIR):/var/data/terraform $(NS)/$(IMAGE_NAME_BYOA_JOB):$(VERSION)
+
+build-challenge1-deploy:
+	make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
+
+push-challenge1-deploy:
+	make push-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
+
+build-challenge1-destroy:
+	make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc BYOA_JOB_ACTION=destroy
+
+push-challenge1-destroy:
+	make push-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc BYOA_JOB_ACTION=destroy
