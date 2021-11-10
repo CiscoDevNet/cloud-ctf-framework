@@ -139,11 +139,28 @@ make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
 
 ## Builds for each challenge:
 ## challenge1
-build:
+build deploy image:
 ```bash
 make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
 ```
-push:
+Run the deploy image:
+```bash
+make run-bc CHALLENGE_REF_ARG=challenge1
+```
+push deploy image:
 ```bash
 make push-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
+```
+
+build destroy image:
+```bash
+make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc BYOA_JOB_ACTION=destroy
+```
+Run the destroy image:
+```bash
+make run-bc CHALLENGE_REF_ARG=challenge1 BYOA_JOB_ACTION=destroy
+```
+push destroy image:
+```bash
+make push-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc BYOA_JOB_ACTION=destroy
 ```
