@@ -132,7 +132,7 @@ class ByoaChallengeDeploys(db.Model):
             db.session.commit()
             k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('destroy'),
                                             {"type": "challenge-destroy", "ctf-challenge-id": str(self.challenge_id),
-                                             "ctf-team-id": str(self.team_id)}, self.team_id)
+                                             "ctf-team-id": str(self.team_id)}, self.team_id, self.challenge_id)
             job = run_k8s_job(k8s_api, k8s_job, "jgroetzi-ctf-dev")
             # log("K8s Job created. status='%s'" % str(job.status))
 
@@ -221,7 +221,7 @@ class ByoaChallengeDeploys(db.Model):
         try:
             k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
                                             {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
-                                            "ctf-team-id": str(self.team_id)}, self.team_id)
+                                            "ctf-team-id": str(self.team_id)}, self.team_id, self.challenge_id)
             job = run_k8s_job(batch_v1, k8s_job, "jgroetzi-ctf-dev")
             # log("K8s Job created. status='%s'" % str(job.status))
 
@@ -356,7 +356,7 @@ class ByoaChallenge(BaseChallenge):
         return data
 
 
-def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_image: str, labels: Dict, team_id: int) -> V1Job:
+def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_image: str, labels: Dict, team_id: int, challenge_id: int) -> V1Job:
     """
 
     :param labels: K8s labels to add to the job, should be dict where key is label name and value is value of the label
@@ -379,7 +379,7 @@ def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_im
     image_pull_secrets = k8sclient.V1LocalObjectReference(
         name="cloud-ctf-cloudctfbot-pull-secret")
     byoa_volume = k8sclient.V1Volume(persistent_volume_claim=k8sclient.V1PersistentVolumeClaimVolumeSource(claim_name="team-byoa-pvc"), name="vol0")
-    volume_mount = k8sclient.V1VolumeMount(mount_path="/var/data/terraform", name="vol0", sub_path=f"team{team_id}")
+    volume_mount = k8sclient.V1VolumeMount(mount_path="/var/data/terraform", name="vol0", sub_path=f"team{team_id}/challenge{challenge_id}")
 
     container = k8sclient.V1Container(
         name=job_name,
