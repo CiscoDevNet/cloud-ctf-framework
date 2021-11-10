@@ -347,23 +347,23 @@ def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_im
         value=aws_info.AWS_ACCESS_KEY_ID)
     secret_key = k8sclient.V1EnvVar(
         name="TF_VAR_AWS_SECRET_ACCESS_KEY",
-        value=aws_info.AWS_SECRET_ACCESS_KEY),
+        value=aws_info.AWS_SECRET_ACCESS_KEY)
     region = k8sclient.V1EnvVar(
         name="TF_VAR_AWS_REGION",
         value=aws_info.AWS_REGION)
     # TODO this can probably be removed? cluster should be set up to do this automatically already
     image_pull_secrets = k8sclient.V1LocalObjectReference(
         name="cloud-ctf-cloudctfbot-pull-secret")
-    # byoa_volume = k8sclient.V1Volume(persistent_volume_claim=k8sclient.V1PersistentVolumeClaimVolumeSource(claim_name="team-byoa-pvc"))
+    byoa_volume = k8sclient.V1Volume(persistent_volume_claim=k8sclient.V1PersistentVolumeClaimVolumeSource(claim_name="team-byoa-pvc"), name="vol0")
     volume_mount = k8sclient.V1VolumeMount(mount_path="/var/data/terraform", name="vol0", sub_path=f"team{team_id}")
-    vd = k8sclient.V1VolumeDevice(device_path="/var/data/terraform", name="vol0")
+    # vd = k8sclient.V1VolumeDevice(device_path="/var/data/terraform", name="team-byoa-pvc")
 
     container = k8sclient.V1Container(
         name=job_name,
         image=container_image,
         env=[access_key, secret_key, region],
         volume_mounts=[volume_mount],
-        volume_devices=[vd])
+        volume_devices=[byoa_volume])
     # Create and configurate a spec section
     template = k8sclient.V1PodTemplateSpec(
         metadata=k8sclient.V1ObjectMeta(labels=labels),
