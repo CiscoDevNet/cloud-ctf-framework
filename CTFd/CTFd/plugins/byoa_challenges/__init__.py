@@ -74,6 +74,7 @@ class ByoaChallengeDeploys(db.Model):
         self.challenge_id = challenge_id
         self.team_id = team_id
         self.ctf_metadata = ctf_metadata
+        self.k8s_api = None
 
     def get_byoa_team_aws_info(self) -> ByoaTeamAwsInfo:
         # AWS_REGION
@@ -197,7 +198,7 @@ class ByoaChallengeDeploys(db.Model):
         try:
             k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
                                             {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
-                                            "ctf-team-id": str(self.team_id)})
+                                            "ctf-team-id": str(self.team_id)}, self.team_id)
             job = run_k8s_job(batch_v1, k8s_job, "jgroetzi-ctf-dev")
             # log("K8s Job created. status='%s'" % str(job.status))
 
@@ -244,7 +245,17 @@ class ByoaChallengeDeploys(db.Model):
         namespace = self.get_k8s_namespace()
         config.load_kube_config()
         batch_v1 = k8sclient.BatchV1Api()
-        job = batch_v1.read_namespaced_job(job_name, namespace)
+        try:
+            job = batch_v1.read_namespaced_job(job_name, namespace)
+        except ApiException as ae:
+            log("CiscoCTF", "K8s exception: {body}", body=ae.body)
+            ae_dict = json.loads(ae.body)
+            if ae.reason == "NotFound":
+            # if ae_dict.code == 404:
+                err = "Failed get deploy job, it was unable to be found! You will need an admin to assist. Error (likely need to report to admin): " + ae_dict["message"]
+                raise ByoaException(err, [err], 404, self)
+            err = "Failed get deploy job! Error (likely need to report to admin): " + ae_dict["message"]
+            raise ByoaException(err, [err], 500, self)
 
         log("CiscoCTF", "Job fetched: {job}", job=job)
         return job
@@ -252,6 +263,11 @@ class ByoaChallengeDeploys(db.Model):
     def get_k8s_namespace(self):
         # TODO figure out how to make env specific, probably add envar
         return "jgroetzi-ctf-dev"
+
+    def get_k8s_api(self) -> k8sclient.BatchV1Api:
+        if not self.k8s_api:
+            self.k8s_api = k8sclient.BatchV1Api()
+        return self.k8s_api
 
 class ByoaChallenge(BaseChallenge):
     id = "byoa"  # Unique identifier used to register challenges
@@ -316,7 +332,7 @@ class ByoaChallenge(BaseChallenge):
         return data
 
 
-def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_image: str, labels: Dict) -> V1Job:
+def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_image: str, labels: Dict, team_id: int) -> V1Job:
     """
 
     :param labels: K8s labels to add to the job, should be dict where key is label name and value is value of the label
@@ -327,18 +343,27 @@ def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_im
     """
     # Configureate Pod template container
     access_key = k8sclient.V1EnvVar(
-        name="AWS_ACCESS_KEY_ID",
+        name="TF_VAR_AWS_ACCESS_KEY_ID",
         value=aws_info.AWS_ACCESS_KEY_ID)
     secret_key = k8sclient.V1EnvVar(
-        name="AWS_SECRET_ACCESS_KEY",
-        value=aws_info.AWS_SECRET_ACCESS_KEY)
+        name="TF_VAR_AWS_SECRET_ACCESS_KEY",
+        value=aws_info.AWS_SECRET_ACCESS_KEY),
+    region = k8sclient.V1EnvVar(
+        name="TF_VAR_AWS_REGION",
+        value=aws_info.AWS_REGION)
     # TODO this can probably be removed? cluster should be set up to do this automatically already
     image_pull_secrets = k8sclient.V1LocalObjectReference(
         name="cloud-ctf-cloudctfbot-pull-secret")
+    # byoa_volume = k8sclient.V1Volume(persistent_volume_claim=k8sclient.V1PersistentVolumeClaimVolumeSource(claim_name="team-byoa-pvc"))
+    volume_mount = k8sclient.V1VolumeMount(mount_path="/var/data/terraform", name="vol0", sub_path=f"team{team_id}")
+    vd = k8sclient.V1VolumeDevice(device_path="/var/data/terraform", name="vol0")
+
     container = k8sclient.V1Container(
         name=job_name,
         image=container_image,
-        env=[access_key,secret_key])
+        env=[access_key, secret_key, region],
+        volume_mounts=[volume_mount],
+        volume_devices=[vd])
     # Create and configurate a spec section
     template = k8sclient.V1PodTemplateSpec(
         metadata=k8sclient.V1ObjectMeta(labels=labels),
