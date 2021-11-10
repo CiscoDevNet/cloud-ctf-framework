@@ -132,7 +132,7 @@ class ByoaChallengeDeploys(db.Model):
             self.set_deploy_status_summary("I r destroying thangs")
             self.deploy_status = 'DESTROYING'
             db.session.commit()
-            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('destroy'),
+            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('destroy', bchal.api_base_uri),
                                             {"type": "challenge-destroy", "ctf-challenge-id": str(self.challenge_id),
                                              "ctf-team-id": str(self.team_id)}, self.team_id, bchal.api_base_uri)
             job = run_k8s_job(k8s_api, k8s_job, get_k8s_namespace())
@@ -222,7 +222,7 @@ class ByoaChallengeDeploys(db.Model):
         job_name=self.get_k8s_job_name('deploy', bchal.api_base_uri)
         log("CiscoCTF", "job_name is "+job_name)
         try:
-            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
+            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy', bchal.api_base_uri),
                                             {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
                                             "ctf-team-id": str(self.team_id)}, self.team_id, bchal.api_base_uri)
             job = run_k8s_job(batch_v1, k8s_job, get_k8s_namespace())
@@ -257,7 +257,7 @@ class ByoaChallengeDeploys(db.Model):
             raise Exception("Unknown job_type " + job_type)
         return chal_ref + '-team' + str(self.team_id) + '-' + job_type
 
-    def get_ccc_image_name(self, job_type: str):
+    def get_ccc_image_name(self, job_type: str, chal_ref: str):
         '''
         Gets the containers.cisco.com image name to be used for a K8s job.
         :param job_type: should be one of: deploy, destroy, validate
@@ -265,7 +265,7 @@ class ByoaChallengeDeploys(db.Model):
         '''
         if job_type not in ['deploy', 'destroy', 'validate']:
             raise Exception("Unknown job_type " + job_type)
-        return 'containers.cisco.com/cloud-ctf/challenge' + str(self.challenge_id) + '-' + job_type
+        return 'containers.cisco.com/cloud-ctf/' + chal_ref + '-' + job_type
 
     def get_k8s_job(self, job_type: str, chal_ref: str):
         job_name = self.get_k8s_job_name(job_type, chal_ref)
