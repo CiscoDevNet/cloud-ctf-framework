@@ -1,4 +1,4 @@
-.PHONY: set-env show-env install build-ctfd push-ctfd run-ctfd stop-cftd start-ctfd rm-ctfd shell-ctfd
+.PHONY: set-env show-env install build-ctfd push-ctfd run-ctfd stop-cftd start-ctfd rm-ctfd shell-ctfd build-bc push-bc
 include .env
 export
 
@@ -8,6 +8,17 @@ VERSION ?= local
 CCC_PATH_CTFD ?= containers.cisco.com/$(NS)/$(IMAGE_NAME_CTFD)
 PUSH_TAG ?= manualbuild
 LOCAL_CONTAINER_NAME_CTFD ?= cisco-cloud-ctfd
+
+#Vars for BYOA deploy/destroy builds
+CHALLENGE_REF_ARG ?= challenge1
+BYOA_JOB_ACTION ?= deploy
+IMAGE_NAME_BYOA_JOB = $(CHALLENGE_REF_ARG)-$(BYOA_JOB_ACTION)
+CCC_PATH_BYOA_JOB ?= containers.cisco.com/$(NS)/$(IMAGE_NAME_BYOA_JOB)
+BYOA_DOCKER_BUILD_FILE ?= Dockerfile.deploy_byoa_chal
+RUN_SCRIPT_ARG ?= /opt/CloudCTF/deploy_byoa_chal.sh
+TF_BASE_DIR_ARG ?= /opt/CloudCTF/$(CHALLENGE_REF_ARG)
+LOCAL_CONTAINER_NAME_BYOA ?= $(IMAGE_NAME_BYOA_JOB)
+LOCAL_TFSTATE_BASE_DIR ?= ${CURDIR}/.data/$(CHALLENGE_REF_ARG)
 
 #This doesn't set the env outside of the make process, just use this which will echo the command, then you can copy and run it manually
 set-env:
@@ -47,3 +58,12 @@ rt: restart-ctfd tail-ctfd
 
 tail-ctfd:
 	docker logs --follow --tail 5 $(LOCAL_CONTAINER_NAME_CTFD)
+
+build-bc:
+	docker build -f $(BYOA_DOCKER_BUILD_FILE) -t $(NS)/$(IMAGE_NAME_BYOA_JOB):$(VERSION) --build-arg CHALLENGE_REF_ARG=$(CHALLENGE_REF_ARG) --build-arg RUN_SCRIPT_ARG=$(RUN_SCRIPT_ARG) --build-arg TF_BASE_DIR_ARG=$(TF_BASE_DIR_ARG) .
+
+push-bc: build-bc
+	docker image tag $(NS)/$(IMAGE_NAME_BYOA_JOB):$(VERSION) $(CCC_PATH_BYOA_JOB):$(PUSH_TAG) && docker image push $(CCC_PATH_BYOA_JOB):$(PUSH_TAG)
+
+run-bc:
+	docker run --rm --name $(LOCAL_CONTAINER_NAME_BYOA) --env TF_VAR_AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID) --env TF_VAR_AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY) --env TF_VAR_AWS_REGION=$(AWS_REGION) -v $(LOCAL_TFSTATE_BASE_DIR):/var/data/terraform $(NS)/$(IMAGE_NAME_BYOA_JOB):$(VERSION)

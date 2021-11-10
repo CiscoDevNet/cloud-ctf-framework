@@ -1,0 +1,19 @@
+FROM scalr/terraform:1.0.9
+
+COPY / /opt/CloudCTF
+
+ARG CHALLENGE_REF_ARG=challenge1
+ENV CHALLENGE_REF=$CHALLENGE_REF_ARG
+ENV TF_VAR_CHALLENGE_REF=$CHALLENGE_REF_ARG
+
+ARG RUN_SCRIPT_ARG=/opt/CloudCTF/deploy_byoa_chal.sh
+ENV RUN_SCRIPT=$RUN_SCRIPT_ARG
+
+ARG TF_BASE_DIR_ARG=/opt/CloudCTF/$CHALLENGE_REF_ARG
+ENV TF_BASE_DIR=$TF_BASE_DIR_ARG
+
+WORKDIR $TF_BASE_DIR
+
+RUN chmod +x $RUN_SCRIPT_ARG && \
+    chmod +x /opt/CloudCTF/run_byoa.sh
+ENTRYPOINT ["/bin/bash", "/opt/CloudCTF/run_byoa.sh"]

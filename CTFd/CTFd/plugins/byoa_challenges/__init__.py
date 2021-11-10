@@ -21,7 +21,9 @@ from kubernetes import client as k8sclient
 from kubernetes import config
 from .byoa_exception import ByoaException
 from functools import wraps
-from .challenge1 import validate_chalenge
+from .challenge1 import validate_chalenge as validate_chalenge1
+from .challenge2 import validate_chalenge as validate_chalenge2
+from .challenge5 import validate_chalenge as validate_chalenge5
 
 @dataclass
 class ByoaTeamAwsInfo:
@@ -127,9 +129,16 @@ class ByoaChallengeDeploys(db.Model):
             err = "You can only validate challenge if deploy_status is DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
 
-        if self.api_base_path == "chall1-destroy-plugin":
-            validate_chalenge()
+        challenge = self.get_challenge()
+        if challenge.api_base_path == "challenge1":
+            validate_chalenge1()
+        elif challenge.api_base_path == "challenge2":
+            validate_chalenge2()
+        elif challenge.api_base_path == "challenge5":
+            validate_chalenge5()
 
+    def get_challenge(self):
+        return ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()
 
     def get_challenge_vpc(self):
         '''
@@ -210,7 +219,6 @@ class ByoaChallengeDeploys(db.Model):
         describeVpc= client.describe_vpcs()
         return describeVpc['Vpcs']
 
-
     def get_k8s_job_name(self, job_type: str):
         '''
         Gets the K8s job name to be used for a K8s job.
@@ -231,6 +239,19 @@ class ByoaChallengeDeploys(db.Model):
             raise Exception("Unknown job_type " + job_type)
         return 'containers.cisco.com/cloud-ctf/challenge' + str(self.challenge_id) + '-' + job_type
 
+    def get_k8s_job(self, job_type: str):
+        job_name = self.get_k8s_job_name(job_type)
+        namespace = self.get_k8s_namespace()
+        config.load_kube_config()
+        batch_v1 = k8sclient.BatchV1Api()
+        job = batch_v1.read_namespaced_job(job_name, namespace)
+
+        log("CiscoCTF", "Job fetched: {job}", job=job)
+        return job
+
+    def get_k8s_namespace(self):
+        # TODO figure out how to make env specific, probably add envar
+        return "jgroetzi-ctf-dev"
 
 class ByoaChallenge(BaseChallenge):
     id = "byoa"  # Unique identifier used to register challenges
@@ -435,7 +456,11 @@ def load(app):
                 bcd = get_or_create_byoa_cd(challenge_id, team_id)
             else:
                 bcd = get_or_create_byoa_cd(challenge_id, team.id)
-            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__)
+
+            k8s_job = None
+            if bcd.deploy_status == 'DEPLOYING':
+                k8s_job = bcd.get_k8s_job('deploy').__dict__
+            return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__, k8s_deploy_job=k8s_job)
         except ByoaException as be:
             return be.get_response_from_exception()
 

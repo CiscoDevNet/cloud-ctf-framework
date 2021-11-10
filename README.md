@@ -100,3 +100,38 @@ make push-ctfd
 ```
 Note: this will build and then push, so you do not need to run the build command before running this.
 Once you push a new version, you should make a tag for that version. by default this push will just push the image to the "manualtag" label. you should copy this to a v<version> label (i.e. v21 if last version was v20)
+
+
+# Building BYOA Challenge job images
+
+To build a challenge image job, i.e. by default it will be challenge1-deploy image:
+```bash
+make build-bc
+```
+This results in a build command as follows:  
+```
+docker build \
+    -f Dockerfile.deploy_byoa_chal \
+    -t cloud-ctf/challenge1-deploy:local \
+    --build-arg CHALLENGE_REF_ARG=challenge1 \
+    --build-arg RUN_SCRIPT_ARG=/opt/CloudCTF/deploy_byoa_chal.sh \
+    --build-arg TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1 \
+    .
+```
+You can see how this is built, and you can override build variables as needed to the make command
+```
+CHALLENGE_REF_ARG ?= challenge1
+BYOA_JOB_ACTION ?= deploy
+IMAGE_NAME_BYOA_JOB = $(CHALLENGE_REF_ARG)-$(BYOA_JOB_ACTION)
+CCC_PATH_BYOA_JOB ?= containers.cisco.com/$(NS)/$(IMAGE_NAME_BYOA_JOB)
+BYOA_DOCKER_BUILD_FILE ?= Dockerfile.deploy_byoa_chal
+RUN_SCRIPT_ARG ?= /opt/CloudCTF/deploy_byoa_chal.sh
+TF_BASE_DIR_ARG ?= /opt/CloudCTF/$(CHALLENGE_REF_ARG)
+```
+
+For example, assuming challenge1 terraform base path is inside of the `vpc` dir,  
+then we need to use a different path for `TF_BASE_DIR_ARG` docker build arg.  
+We will run make command to achieve this:
+```bash
+make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
+```
