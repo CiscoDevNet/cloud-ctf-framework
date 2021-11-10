@@ -135,3 +135,15 @@ We will run make command to achieve this:
 ```bash
 make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
 ```
+
+
+## Builds for each challenge:
+## challenge1
+build:
+```bash
+make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
+```
+push:
+```bash
+make push-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
+```
