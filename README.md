@@ -58,7 +58,7 @@ Put your kube config file in location `.data/kube-config` if you want to test de
 The dockerfile will symlink this file to `/home/ctfd/.kube/config` so if it exists it will just work. 
 When in production this file is passed in as a volume which will overwrite the symlink.
 
-If you want to test k8s jobs locally, you need to create your own namespace in the cluster to stick the jobs. Once you have that, you need to re-run the ctfd local container and pass the `CTF_K8S_NAMESPACE` variable. for example:
+If you want to test k8s jobs locally, you need to create your own namespace in the cluster to stick the jobs and also create a PersistenVolumeClaim in the namespace with a name of "team-byoa-pvc". Once you have that, you need to re-run the ctfd local container and pass the `CTF_K8S_NAMESPACE` variable. for example:
 ```bash
 make run-cftd CTF_K8S_NAMESPACE=my-namespace
 ```
