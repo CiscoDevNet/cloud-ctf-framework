@@ -201,3 +201,50 @@ push the challenge2 destroy image:
 ```bash
 make push-bc CHALLENGE_REF_ARG=challenge2 BYOA_JOB_ACTION=destroy
 ```
+
+# App Architecture
+
+## Deploy code
+### Terraform code
+Challenge code that uses terraform place into a "challenge#" directory at the root of the project. i.e. `challenge1`
+Put terraform files at the root level of this repo. This is where the `terraform` commands will be run from (i.e. `terraform init)
+
+### Running and Testing Terraform
+When developing and testing locally, use the `make build-bc CHALLENGE_REF_ARG=challenge1` command to build your container for deploying terraform.   
+Then run `make run-bc CHALLENGE_REF_ARG=challenge1` to run the deploy job.
+
+This will build the deploy job container, to push it run `make push-bc CHALLENGE_REF_ARG=challenge1` to push up a new version. (remember to go move the tag to latest after verifying)
+
+To build/run/push the destroy job container, it is the same process as deploy, you just need to override the default job type using the `BYOA_JOB_ACTION` variable. Example:
+
+```bash
+make build-bc CHALLENGE_REF_ARG=challenge1 BYOA_JOB_ACTION=destroy
+make run-bc CHALLENGE_REF_ARG=challenge1 BYOA_JOB_ACTION=destroy
+make push-bc CHALLENGE_REF_ARG=challenge1 BYOA_JOB_ACTION=destroy
+```
+
+### Terraform state backend
+Because S3 with cross account is a bit annoying to manage on short notice, we are using local backend for terraform.  
+The file location when inside of the container will always be the same, and this should be provided in your providers.ts file as follows:
+```terraform
+provider "aws" {
+  access_key = var.AWS_ACCESS_KEY_ID
+  secret_key = var.AWS_SECRET_ACCESS_KEY
+  region     = var.AWS_REGION
+}
+
+terraform {
+    /*backend "s3"{
+        bucket="terraform-infra-state-ctf"
+        key ="team1-chall1"
+        region="ap-south-1"
+    }*/
+    backend "local" {
+        path = "/var/data/terraform/terraform.tfstate"
+    }
+}
+```
+Make sure this is what your provider.ts file looks like.  
+When running with `make run-bc` locally, it will link the tfstate directory into `.data/challenge#`.
+So locally the tfstate file would be at (relative to root of repo) assuming challenge1: `.data/challenge1/terraform.tfstate` 
+which would be linked into `/var/data/terraform/terraform.tfstate` inside of the container (it maps `.data/challenge1:/var/data/terraform`)
