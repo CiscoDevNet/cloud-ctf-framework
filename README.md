@@ -58,6 +58,13 @@ Put your kube config file in location `.data/kube-config` if you want to test de
 The dockerfile will symlink this file to `/home/ctfd/.kube/config` so if it exists it will just work. 
 When in production this file is passed in as a volume which will overwrite the symlink.
 
+If you want to test k8s jobs locally, you need to create your own namespace in the cluster to stick the jobs. Once you have that, you need to re-run the ctfd local container and pass the `CTF_K8S_NAMESPACE` variable. for example:
+```bash
+make run-cftd CTF_K8S_NAMESPACE=my-namespace
+```
+
+Note that if you are doing this, you will not be able to access the terraform state locally as the terraform state will be stored in the cluster inside of a PersistentVolume.  
+To test the deploy/destroy operations, just use the `bc` make commands, you will not be able to test 100% end-to-end locally for the deploy/destory/validate.
 ### Stop CTFd
 ```bash
 make stop-ctfd
