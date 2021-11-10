@@ -1,14 +1,7 @@
-variable "AWS_REGION" {
-  default = "ap-south-1"
-
-}
-
-variable "AWS_ACCESS_KEY_ID" {
-  type = string
-}
-variable "AWS_SECRET_ACCESS_KEY" {
-  type      = string
-  sensitive = true
+variable "AWS_REGION"{
+    default = "ap-south-1"
+    #default = "us-east-1"
+    
 }
 
 variable "PATH_TO_PUBLIC_KEY" {
@@ -19,11 +12,13 @@ variable "PATH_TO_PRIVATE_KEY" {
   default = "mykey"
 }
 
-variable "additional_tags" {
-  default     = { "type" = "challenge1" }
-  description = "Additional resource tags"
-  type        = map(string)
+
+variable "images" {
+  type = "map"
+  default = {
+    "ap-south-1" = "ami-041db4a969fe3eb68"
+    "us-east-1" = "ami-01cc34ab2709337aa"
+    "eu-west-2" = "ami-074771aa49ab046e7"
+  }
 }
 
-variable "CHALLENGE_REF" {
-}

@@ -1,7 +1,16 @@
+/*resource "aws_key_pair" "mykey"{
+    key_name = "mykey"
+    public_key = "${file("${var.PATH_TO_PUBLIC_KEY}")}"
+    #public_key = var.PATH_TO_PUBLIC_KEY
+}
+*/
+
 resource "aws_instance" "chall1http"{
-    ami = "ami-041d6256ed0f2061c"
+    #ami = "ami-041d6256ed0f2061c"
+    ami= lookup(var.images, var.AWS_REGION)
     instance_type="t2.micro"
     subnet_id = aws_subnet.my-public.id
+    #key_name = aws_key_pair.mykey.key_name
     security_groups=[aws_security_group.vpc_security_group.id]
     user_data  = <<EOF
     #!/bin/bash
@@ -19,12 +28,9 @@ resource "aws_instance" "chall1http"{
            </p>
         </h1> " > /var/www/html/index.html
     EOF
-    tags = merge(
-    var.additional_tags,
-    {
-      Name = "CloudCTFchall1"
-    },
-    )
+    tags = {
+    Name = "CloudCTFchall1"
+  }
 }
 
 
