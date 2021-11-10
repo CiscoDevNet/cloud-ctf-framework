@@ -356,18 +356,16 @@ def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_im
         name="cloud-ctf-cloudctfbot-pull-secret")
     byoa_volume = k8sclient.V1Volume(persistent_volume_claim=k8sclient.V1PersistentVolumeClaimVolumeSource(claim_name="team-byoa-pvc"), name="vol0")
     volume_mount = k8sclient.V1VolumeMount(mount_path="/var/data/terraform", name="vol0", sub_path=f"team{team_id}")
-    # vd = k8sclient.V1VolumeDevice(device_path="/var/data/terraform", name="team-byoa-pvc")
 
     container = k8sclient.V1Container(
         name=job_name,
         image=container_image,
         env=[access_key, secret_key, region],
-        volume_mounts=[volume_mount],
-        volume_devices=[byoa_volume])
+        volume_mounts=[volume_mount])
     # Create and configurate a spec section
     template = k8sclient.V1PodTemplateSpec(
         metadata=k8sclient.V1ObjectMeta(labels=labels),
-        spec=k8sclient.V1PodSpec(restart_policy="Never", containers=[container],image_pull_secrets=[image_pull_secrets]))
+        spec=k8sclient.V1PodSpec(restart_policy="Never", containers=[container],image_pull_secrets=[image_pull_secrets], volumes=[byoa_volume]))
     # Create the specification of deployment
     spec = k8sclient.V1JobSpec(
         template=template,
