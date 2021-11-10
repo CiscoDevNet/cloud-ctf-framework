@@ -70,11 +70,13 @@ class ByoaChallengeDeploys(db.Model):
     # stores random schemaless info, like messages from the deploy, or variables from the deploy, etc.
     ctf_metadata = db.Column(db.JSON, default=None)
 
-    def __init__(self, challenge_id, team_id, ctf_metadata=None):
+    k8s_api = None
+
+    def __init__(self, challenge_id, team_id, ctf_metadata=None, k8s_api=None):
         self.challenge_id = challenge_id
         self.team_id = team_id
         self.ctf_metadata = ctf_metadata
-        self.k8s_api = None
+        self.k8s_api = k8s_api
 
     def get_byoa_team_aws_info(self) -> ByoaTeamAwsInfo:
         # AWS_REGION
@@ -119,9 +121,30 @@ class ByoaChallengeDeploys(db.Model):
             err = "You can only destroy challenge when the deploy_status is DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
 
-        self.set_deploy_status_summary("I r destroying thangs")
-        self.deploy_status = 'DESTROYING'
-        db.session.commit()
+
+        k8s_api = self.get_k8s_api()
+        d_info = self.get_byoa_team_aws_info()
+        job_name=self.get_k8s_job_name('destroy')
+        log("CiscoCTF", "job_name is "+job_name)
+        try:
+            self.set_deploy_status_summary("I r destroying thangs")
+            self.deploy_status = 'DESTROYING'
+            db.session.commit()
+            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('destroy'),
+                                            {"type": "challenge-destroy", "ctf-challenge-id": str(self.challenge_id),
+                                             "ctf-team-id": str(self.team_id)}, self.team_id)
+            job = run_k8s_job(k8s_api, k8s_job, "jgroetzi-ctf-dev")
+            # log("K8s Job created. status='%s'" % str(job.status))
+
+        except ApiException as ae:
+            log("CiscoCTF", "K8s exception: {body}", body=ae.body)
+            ae_dict = json.loads(ae.body)
+            err = "Failed to deploy! Error (likely need to report to admin): " + ae_dict["message"]
+            self.set_deploy_status_summary("I failed to destroy! Please reach out to admins for help :(")
+            self.deploy_status = 'FAILED_DESTROYING'
+            db.session.commit()
+            raise ByoaException(err, [err], 500, self)
+
         # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
 
 
@@ -169,7 +192,7 @@ class ByoaChallengeDeploys(db.Model):
 
     def reset_challenge_deploy(self):
         # TODO remove check for != DEPLOYING and DESTROYING after done development
-        if self.deploy_status != 'FAILED_DEPLOYED' and self.deploy_status != 'DEPLOYING' and self.deploy_status != 'DESTROYING':
+        if self.deploy_status != 'FAILED_DEPLOYED' and self.deploy_status != 'DEPLOYING' and self.deploy_status != 'DESTROYING' and self.deploy_status != 'FAILED_DESTROYING':
             err = "You can only reset a chellenge deployment when it is in status FAILED_DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
         self.deploy_status = 'NOT_DEPLOYED'
@@ -266,6 +289,7 @@ class ByoaChallengeDeploys(db.Model):
 
     def get_k8s_api(self) -> k8sclient.BatchV1Api:
         if not self.k8s_api:
+            config.load_kube_config()
             self.k8s_api = k8sclient.BatchV1Api()
         return self.k8s_api
 
