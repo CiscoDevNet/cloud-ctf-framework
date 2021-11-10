@@ -125,7 +125,8 @@ class ByoaChallengeDeploys(db.Model):
 
         k8s_api = self.get_k8s_api()
         d_info = self.get_byoa_team_aws_info()
-        job_name=self.get_k8s_job_name('destroy')
+        bchal = ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()
+        job_name=self.get_k8s_job_name('destroy', bchal.api_base_uri)
         log("CiscoCTF", "job_name is "+job_name)
         try:
             self.set_deploy_status_summary("I r destroying thangs")
@@ -133,8 +134,8 @@ class ByoaChallengeDeploys(db.Model):
             db.session.commit()
             k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('destroy'),
                                             {"type": "challenge-destroy", "ctf-challenge-id": str(self.challenge_id),
-                                             "ctf-team-id": str(self.team_id)}, self.team_id, self.challenge_id)
-            job = run_k8s_job(k8s_api, k8s_job, "jgroetzi-ctf-dev")
+                                             "ctf-team-id": str(self.team_id)}, self.team_id, bchal.api_base_uri)
+            job = run_k8s_job(k8s_api, k8s_job, get_k8s_namespace())
             # log("K8s Job created. status='%s'" % str(job.status))
 
         except ApiException as ae:
@@ -155,11 +156,11 @@ class ByoaChallengeDeploys(db.Model):
             raise ByoaException(err, [err], 400, self)
 
         challenge = self.get_challenge()
-        if challenge.api_base_path == "challenge1":
+        if challenge.api_base_uri == "challenge1":
             validate_chalenge1()
-        elif challenge.api_base_path == "challenge2":
+        elif challenge.api_base_uri == "challenge2":
             validate_chalenge2()
-        elif challenge.api_base_path == "challenge5":
+        elif challenge.api_base_uri == "challenge5":
             validate_chalenge5()
 
     def get_challenge(self):
@@ -217,13 +218,14 @@ class ByoaChallengeDeploys(db.Model):
         config.load_kube_config()
         batch_v1 = k8sclient.BatchV1Api()
         d_info = self.get_byoa_team_aws_info()
-        job_name=self.get_k8s_job_name('deploy')
+        bchal = ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()
+        job_name=self.get_k8s_job_name('deploy', bchal.api_base_uri)
         log("CiscoCTF", "job_name is "+job_name)
         try:
             k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy'),
                                             {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
-                                            "ctf-team-id": str(self.team_id)}, self.team_id, self.challenge_id)
-            job = run_k8s_job(batch_v1, k8s_job, "jgroetzi-ctf-dev")
+                                            "ctf-team-id": str(self.team_id)}, self.team_id, bchal.api_base_uri)
+            job = run_k8s_job(batch_v1, k8s_job, get_k8s_namespace())
             # log("K8s Job created. status='%s'" % str(job.status))
 
         except ApiException as ae:
@@ -244,15 +246,16 @@ class ByoaChallengeDeploys(db.Model):
         describeVpc= client.describe_vpcs()
         return describeVpc['Vpcs']
 
-    def get_k8s_job_name(self, job_type: str):
+    def get_k8s_job_name(self, job_type: str, chal_ref: str):
         '''
         Gets the K8s job name to be used for a K8s job.
+        :param chal_ref:
         :param job_type: should be one of: deploy, destroy, validate
         :return str: string with job name. i.e. challenge1-team1-deploy
         '''
         if job_type not in ['deploy', 'destroy', 'validate']:
             raise Exception("Unknown job_type " + job_type)
-        return 'challenge-' + str(self.challenge_id) + '-team' + str(self.team_id) + '-' + job_type
+        return chal_ref + '-team' + str(self.team_id) + '-' + job_type
 
     def get_ccc_image_name(self, job_type: str):
         '''
@@ -264,9 +267,9 @@ class ByoaChallengeDeploys(db.Model):
             raise Exception("Unknown job_type " + job_type)
         return 'containers.cisco.com/cloud-ctf/challenge' + str(self.challenge_id) + '-' + job_type
 
-    def get_k8s_job(self, job_type: str):
-        job_name = self.get_k8s_job_name(job_type)
-        namespace = self.get_k8s_namespace()
+    def get_k8s_job(self, job_type: str, chal_ref: str):
+        job_name = self.get_k8s_job_name(job_type, chal_ref)
+        namespace = get_k8s_namespace()
         config.load_kube_config()
         batch_v1 = k8sclient.BatchV1Api()
         try:
@@ -283,10 +286,6 @@ class ByoaChallengeDeploys(db.Model):
 
         log("CiscoCTF", "Job fetched: {job}", job=job)
         return job
-
-    def get_k8s_namespace(self):
-        # TODO figure out how to make env specific, probably add envar
-        return "jgroetzi-ctf-dev"
 
     def get_k8s_api(self) -> k8sclient.BatchV1Api:
         if not self.k8s_api:
@@ -357,7 +356,7 @@ class ByoaChallenge(BaseChallenge):
         return data
 
 
-def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_image: str, labels: Dict, team_id: int, challenge_id: int) -> V1Job:
+def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_image: str, labels: Dict, team_id: int, chal_ref: str) -> V1Job:
     """
 
     :param labels: K8s labels to add to the job, should be dict where key is label name and value is value of the label
@@ -380,7 +379,7 @@ def create_k8s_job_object(aws_info: ByoaTeamAwsInfo, job_name: str, container_im
     image_pull_secrets = k8sclient.V1LocalObjectReference(
         name="cloud-ctf-cloudctfbot-pull-secret")
     byoa_volume = k8sclient.V1Volume(persistent_volume_claim=k8sclient.V1PersistentVolumeClaimVolumeSource(claim_name="team-byoa-pvc"), name="vol0")
-    volume_mount = k8sclient.V1VolumeMount(mount_path="/var/data/terraform", name="vol0", sub_path=f"team{team_id}/challenge{challenge_id}")
+    volume_mount = k8sclient.V1VolumeMount(mount_path="/var/data/terraform", name="vol0", sub_path=f"team{team_id}/{chal_ref}")
 
     container = k8sclient.V1Container(
         name=job_name,
@@ -507,9 +506,9 @@ def load(app):
 
             k8s_job = None
             if bcd.deploy_status in ['DEPLOYING', 'DEPLOYED', 'FAILED_DEPLOY']:
-                k8s_job = bcd.get_k8s_job('deploy').__dict__
+                k8s_job = bcd.get_k8s_job('deploy', challenge.api_base_uri).__dict__
             elif bcd.deploy_status in ['DESTROYING', 'FAILED_DESTROYING', 'DESTROYED']:
-                k8s_job = bcd.get_k8s_job('destroy').__dict__
+                k8s_job = bcd.get_k8s_job('destroy', challenge.api_base_uri).__dict__
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
                                    k8s_deploy_job=k8s_job)
         except ByoaException as be:
@@ -637,3 +636,6 @@ def get_ctf_admin_cloud_aws_cred() -> ByoaTeamAwsInfo:
         AWS_ACCESS_KEY_ID=os.getenv('CTF_ADMIN_AWS_ACCESS_KEY_ID'),
         AWS_SECRET_ACCESS_KEY=os.getenv('CTF_ADMIN_AWS_SECRET_ACCESS_KEY')
     )
+
+def get_k8s_namespace() -> str:
+    return os.getenv('CTF_K8S_NAMESPACE')
