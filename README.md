@@ -243,3 +243,16 @@ Make sure this is what your provider.ts file looks like.
 When running with `make run-bc` locally, it will link the tfstate directory into `.data/challenge#`.
 So locally the tfstate file would be at (relative to root of repo) assuming challenge1: `.data/challenge1/terraform.tfstate` 
 which would be linked into `/var/data/terraform/terraform.tfstate` inside of the container (it maps `.data/challenge1:/var/data/terraform`)
+
+
+#### K8S Runs
+When these containers run in K8S we still need to store the state persistently. 
+Inside the container the path does not change, but we will link in a PV to this path so it persists after the container exits.
+
+In K8S we will use a pvc called `team-byoa-pvc`. for dev, you need to make this pvc in whatever namespace you are using for dev.  
+sub pathing will be used for each team/challenge, so when the PV is used in the jobs it will use sub_path `team#/challenge#` inside of this pvc.  
+
+#### Accessing tfstate from ctfd
+For validation we will also want to be able to check the tfstate file to look up things like public ip, etc.  
+This will be accessible at path `/var/data/team-byoa-pvc` from cttd app (i.e. your plugin code can read from this to look up tfstate for a given team/challenge).  
+example: to lookup the tfstate for challenge1 for team1, the path would be `/var/data/team-byoa-pvc/team1/challenge1/terraform.tfstate`
