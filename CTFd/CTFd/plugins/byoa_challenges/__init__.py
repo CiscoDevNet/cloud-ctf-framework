@@ -297,6 +297,11 @@ class ByoaChallengeDeploys(db.Model):
         challenge = self.get_challenge()
         return get_base_terraform_path() + f"/team{self.team_id}/{challenge.api_base_uri}"
 
+    def get_terraform_state_dict(self):
+        with open(self.get_terraform_path()) as json_file:
+            data = json.load(json_file)
+        return data
+
 class ByoaChallenge(BaseChallenge):
     id = "byoa"  # Unique identifier used to register challenges
     name = "byoa"  # Name of a challenge type
