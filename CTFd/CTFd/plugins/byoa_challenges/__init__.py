@@ -293,6 +293,10 @@ class ByoaChallengeDeploys(db.Model):
             self.k8s_api = k8sclient.BatchV1Api()
         return self.k8s_api
 
+    def get_terraform_path(self):
+        challenge = self.get_challenge()
+        return get_base_terraform_path() + f"/team{self.team_id}/{challenge.api_base_uri}"
+
 class ByoaChallenge(BaseChallenge):
     id = "byoa"  # Unique identifier used to register challenges
     name = "byoa"  # Name of a challenge type
@@ -639,3 +643,6 @@ def get_ctf_admin_cloud_aws_cred() -> ByoaTeamAwsInfo:
 
 def get_k8s_namespace() -> str:
     return os.getenv('CTF_K8S_NAMESPACE')
+
+def get_base_terraform_path():
+    return '/var/data/team-byoa-pvc'

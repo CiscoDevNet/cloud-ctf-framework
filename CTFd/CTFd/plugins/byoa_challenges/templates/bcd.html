@@ -58,11 +58,11 @@
                     </p>
                     {% if debug %}
                         DEBUG: K8s Job: {{ k8s_deploy_job|pprint}}
+                        DEBUG: bcd: {{ bcd|pprint}}
+                        DEBUG: challenge: {{ challenge|pprint}}
                     {%  endif %}
                 </div>
             {% endif %}
-            {{ bcd|pprint}}
-            {{ challenge|pprint}}
         {% endif %}
         {% block challenge_content %}
             {% if bcd.ctf_metadata %}
@@ -72,5 +72,6 @@
             {%  endif %}
             <!-- Put custom code for each challenge here -->
         {% endblock %}
+
     </div>
 {% endblock %}
