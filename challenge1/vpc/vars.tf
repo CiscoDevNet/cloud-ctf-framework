@@ -14,7 +14,7 @@ variable "PATH_TO_PRIVATE_KEY" {
 
 
 variable "images" {
-  type = "map"
+  type = map(string)
   default = {
     "ap-south-1" = "ami-041db4a969fe3eb68"
     "us-east-1" = "ami-01cc34ab2709337aa"
@@ -22,3 +22,19 @@ variable "images" {
   }
 }
 
+variable "availability_zone" {
+  type = map(string)
+  default = {
+    "ap-south-1" = "ap-south-1a"
+    "us-east-1" = "us-east-1a"
+    "eu-west-2" = "eu-west-2a"
+  }
+}
+
+variable "AWS_ACCESS_KEY_ID" {
+  type = string
+}
+variable "AWS_SECRET_ACCESS_KEY" {
+  type      = string
+  sensitive = true
+}
