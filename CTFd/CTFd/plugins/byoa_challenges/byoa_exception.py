@@ -35,7 +35,8 @@ class ByoaException(Exception):
             challenge["api_base_uri"] = "i_dont_know_python_imports_are_dumb"
             return render_template("cisco/byoa_challenges/bcd.html", errors=self.user_messages, bcd=self.bcd.__dict__,
                                    challenge=challenge,
-                                   banner={"msg": "<br>".join(self.user_messages), "level": "danger"}), self.http_resp_code
+                                   banner={"msg": "<br>".join(self.user_messages), "level": "danger"},
+                                   metadata=self.bcd.get_byoa_metadata()), self.http_resp_code
 
         if self.http_resp_code in [400, 401, 409]:
             return render_template(f"cisco/byoa_challenges/{self.http_resp_code}.html", errors=self.user_messages), self.http_resp_code

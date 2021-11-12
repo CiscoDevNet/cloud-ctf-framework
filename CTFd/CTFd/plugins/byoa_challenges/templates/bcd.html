@@ -16,15 +16,13 @@
             <h4>Validation Result</h4>
             <p>Result: {{ 'You have done it!' if validation_result.result else 'You have not fixed the issue yet :(' }}</p>
             <p>Message: {{ validation_result.message }}</p>
-            {% if validation_result.result %} }}
+            {% if validation_result.result %}
                 <p>Here is your flag: {{ validation_result.flag }}</p>
             {% endif %}
         {% endif %}
         {% if bcd %}
             <h3>{{ challenge.name }}</h3>
-            <p>Local challenge ID: {{ challenge.id }}<br>
-                Admin challenge Reference: {{ challenge.api_base_uri }}
-            </p>
+            <div class="row">{{ challenge.description|safe }}</div>
             <div class="row">
                 <p>Deploy status: {{ bcd.deploy_status }}</p>
                 {% if bcd.deploy_status == 'DEPLOYING' or bcd.deploy_status == 'DESTROYING' %}
@@ -32,26 +30,31 @@
                 {% endif %}
             </div>
             <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
+                {% if bcd.deploy_status == 'NOT_DEPLOYED'%}
                 <div class="col-md-3">
                     <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}">
                         <button class="btn btn-outline-primary btn-outlined" id="challenge-deploy-btn">Deploy</button>
                     </a>
                 </div>
+                {% endif %}
+                {% if bcd.deploy_status == 'DEPLOYED'%}
                 <div class="col-md-3">
                     <a href="/plugins/byoa_challenges/validate/{{ challenge.id }}">
                         <button class="btn btn-outline-success btn-outlined" id="challenge-validate-btn" >Validate</button>
                     </a>
                 </div>
+                {% endif %}
+                {% if bcd.deploy_status == 'DEPLOYED' or bcd.deploy_status == 'FAILED_DEPLOY'or bcd.deploy_status == 'FAILED_DESTROY'  %}
                 <div class="col-md-3">
                     <a href="/plugins/byoa_challenges/destroy/{{ challenge.id }}">
                         <button class="btn btn-outline-danger btn-outlined" id="challenge-destroy-btn" >Destroy</button>
                     </a>
                 </div>
-                <div class="col-md-3">
-                    <a href="/plugins/byoa_challenges/reset/{{ challenge.id }}"><button class="btn btn-outline-secondary btn-outlined" id="challenge-reset-btn"
-                    >Reset Failed</button></a>
-                </div>
+                {%  endif %}
             </div>
+            {% if bcd.deploy_status == 'DESTROYED' %}
+                <p>Need to deploy again? Ask an admin to reset the status for you.</p>
+            {% endif %}
             {% if k8s_deploy_job %}
                 <h3>Latest Job Details</h3>
                 <div class="row">
@@ -82,16 +85,22 @@
             {%  endif %}
             <!-- Put custom code for each challenge here -->
         {% endblock %}
-
-    {% if metadata %}
-        {% if metadata.is_admin %}
-            <h4>Admin Links</h4>
+    {% if bcd.byoa_metadata %}
+        {% if bcd.byoa_metadata.is_admin %}
+            <h4>Admin Area</h4>
+            <p>Local challenge ID: {{ challenge.id }}<br>
+                Admin challenge Reference: {{ challenge.api_base_uri }}
+            </p>
+            <div class="col-md-3">
+                <a href="/plugins/byoa_challenges/reset/{{ challenge.id }}"><button class="btn btn-outline-secondary btn-outlined" id="challenge-reset-btn"
+                >Reset Status</button></a>
+            </div>
             <div>
-            {% if metadata.admin_job_url_deploy %}
-                <a href="{{ metadata.admin_job_url_deploy  }}" target="_blank">View Deploy K8S Job</a>
+            {% if bcd.byoa_metadata.admin_job_url_deploy %}
+                <a href="{{ bcd.byoa_metadata.admin_job_url_deploy  }}" target="_blank">View Deploy K8S Job</a>
             {% endif %}
-            {% if metadata.admin_job_url_destroy %}
-                <br><a href="{{ metadata.admin_job_url_destroy  }}" target="_blank">View Destroy K8S Job</a>
+            {% if bcd.byoa_metadata.admin_job_url_destroy %}
+                <br><a href="{{ bcd.byoa_metadata.admin_job_url_destroy  }}" target="_blank">View Destroy K8S Job</a>
             {% endif %}
             </div>
         {% endif %}

@@ -83,12 +83,23 @@ class ByoaChallengeDeploys(db.Model):
     ctf_metadata = db.Column(db.JSON, default=None)
 
     k8s_api = None
+    byoa_metadata: ByoaMetadata = None
 
-    def __init__(self, challenge_id, team_id, ctf_metadata=None, k8s_api=None):
+    def __init__(self, challenge_id, team_id, ctf_metadata=None, k8s_api=None, byoa_metadata=None):
         self.challenge_id = challenge_id
         self.team_id = team_id
         self.ctf_metadata = ctf_metadata
         self.k8s_api = k8s_api
+        if byoa_metadata is None:
+            self.get_byoa_metadata()
+        else:
+            self.byoa_metadata = byoa_metadata
+
+    def get_byoa_metadata(self):
+        if not self.byoa_metadata:
+            self.byoa_metadata = ByoaMetadata(is_admin=is_admin())
+
+        return self.byoa_metadata
 
     def get_byoa_team_aws_info(self) -> ByoaTeamAwsInfo:
         # AWS_REGION
@@ -147,6 +158,7 @@ class ByoaChallengeDeploys(db.Model):
                                             {"type": "challenge-destroy", "ctf-challenge-id": str(self.challenge_id),
                                              "ctf-team-id": str(self.team_id)}, self.team_id, bchal.api_base_uri)
             job = run_k8s_job(k8s_api, k8s_job, get_k8s_namespace())
+            self.set_deploy_status_summary("Destroy Job Queued Successfully")
             # log("K8s Job created. status='%s'" % str(job.status))
 
         except ApiException as ae:
@@ -155,11 +167,8 @@ class ByoaChallengeDeploys(db.Model):
             err = "Failed to deploy! Error (likely need to report to admin): " + ae_dict["message"]
             self.set_deploy_status_summary("I failed to destroy! Please reach out to admins for help :(")
             self.deploy_status = 'FAILED_DESTROY'
-            db.session.commit()
+            self.set_deploy_status_summary("Failed to queue Destroy Job")
             raise ByoaException(err, [err], 500, self)
-
-        # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
-
 
     def validate_challenge(self):
         if self.deploy_status != 'DEPLOYED':
@@ -217,6 +226,7 @@ class ByoaChallengeDeploys(db.Model):
             err = "call to deploy_challenge and the deploy_status was not currently set to NOT_DEPLOYED! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
         self.deploy_status = 'DEPLOYING'
+        self.set_deploy_status_summary("Queueing Deploy Job")
         db.session.commit()
 
         # Check VPC count
@@ -239,6 +249,7 @@ class ByoaChallengeDeploys(db.Model):
                                             "ctf-team-id": str(self.team_id)}, self.team_id, chal_ref)
             job = run_k8s_job(batch_v1, k8s_job, get_k8s_namespace())
             # log("K8s Job created. status='%s'" % str(job.status))
+            self.set_deploy_status_summary("Job Deploy Queued Successfully")
 
         except ApiException as ae:
             log("CiscoCTF", "K8s exception: {body}", body=ae.body)
@@ -341,13 +352,15 @@ class ByoaChallengeDeploys(db.Model):
             if job._status.succeeded:
                 # job is done, change to DEPLOYED
                 self.deploy_status = 'DEPLOYED'
-                db.session.commit()
+                self.set_deploy_status_summary("Job Deployed Successfully. You can now use the Validate button.")
+                # db.session.commit()
                 log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
                 return
 
             elif job._status.failed and job._status.failed >= 5:
                 # job is done, change to DEPLOYED
                 self.deploy_status = 'FAILED_DEPLOY'
+                self.set_deploy_status_summary("Job Failed to run! Please contact an admin for assistance.")
                 db.session.commit()
                 log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
                 return
@@ -586,7 +599,7 @@ def load(app):
 
             k8s_job = None
             job_name = ''
-            metadata = ByoaMetadata(is_admin=is_admin())
+            metadata = bcd.get_byoa_metadata()
             if bcd.deploy_status in ['DEPLOYING', 'DEPLOYED', 'FAILED_DEPLOY']:
                 if request.args.get('check_job') == 'true':
                     log("CiscoCTF", "checking on job...")
