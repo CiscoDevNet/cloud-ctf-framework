@@ -689,7 +689,7 @@ def load(app):
 
             validation_result = bcd.validate_challenge()
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
-                                   validate_result=validation_result.__dict__)
+                                   validation_result=validation_result.__dict__)
         except ByoaException as be:
             return be.get_response_from_exception()
 
