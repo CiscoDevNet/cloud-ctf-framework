@@ -200,8 +200,8 @@ class ByoaChallengeDeploys(db.Model):
 
     def reset_challenge_deploy(self):
         # TODO remove check for != DEPLOYING and DESTROYING after done development
-        if self.deploy_status != 'FAILED_DEPLOY' and self.deploy_status != 'DEPLOYING' and self.deploy_status != 'DESTROYING' and self.deploy_status != 'FAILED_DESTROY':
-            err = "You can only reset a chellenge deployment when it is in status FAILED_DEPLOY! It is currently "+self.deploy_status
+        if self.deploy_status not in ['FAILED_DEPLOY', 'DEPLOYING' , 'DESTROYING', 'FAILED_DESTROY', 'DESTROYED']:
+            err = "You can only reset a challenge deployment when it is in status FAILED_DEPLOY! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
         self.deploy_status = 'NOT_DEPLOYED'
         self.set_deploy_status_summary("I Reset thangs")
