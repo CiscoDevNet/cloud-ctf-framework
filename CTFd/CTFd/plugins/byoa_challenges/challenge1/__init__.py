@@ -1,10 +1,15 @@
-#from .. import ByoaChallengeDeploys
+<<<<<<< HEAD
+# from .. import ByoaChallengeDeploys
+=======
+# from .. import ByoaChallengeDeploys
+>>>>>>> 0f545aee483bbaf4dbcc913e2a9907a778ad3098
 import requests
 
 
-def validate_chalenge(bcd: ByoaChallengeDeploys):
+def validate_chalenge(bcd):
     # TODO Bhavik to fill in validation code
     tf_data = bcd.get_terraform_state_dict()
+    return tf_data
     #url = tf_data['outputs']['public_ip']['value']
     real = tf_data['outputs']['public_ip']['value']
 
@@ -36,4 +41,4 @@ def validate_chalenge(bcd: ByoaChallengeDeploys):
 
         return {"Note Challenge Failed, Please try again"}
 
- 
+

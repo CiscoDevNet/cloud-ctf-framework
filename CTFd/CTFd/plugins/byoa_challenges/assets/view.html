@@ -124,14 +124,19 @@
                         <div class="loader hidden" id="deploy-loader"></div>
                         <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
                             <div class="col-md-4">
-                                <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}"><button class="btn btn-outline-primary btn-outlined" id="challenge-deploy-btn"
-                                >Deploy</button></a>
+                                <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}">
+                                    <button class="btn btn-outline-primary btn-outlined" id="challenge-deploy-btn">Deploy</button>
+                                </a>
                             </div>
                             <div class="col-md-4">
-                                <button class="btn btn-outline-success btn-outlined" id="challenge-validate-btn" >Validate</button>
+                                <a href="/plugins/byoa_challenges/validate/{{ challenge.id }}">
+                                    <button class="btn btn-outline-success btn-outlined hidden" id="challenge-validate-btn" >Validate</button>
+                                </a>
                             </div>
                             <div class="col-md-4">
-                                <button class="btn btn-outline-danger btn-outlined" id="challenge-destroy-btn" >Destroy</button>
+                                <a href="/plugins/byoa_challenges/destroy/{{ challenge.id }}">
+                                    <button class="btn btn-outline-danger btn-outlined hidden" id="challenge-destroy-btn" >Destroy</button>
+                                </a>
                             </div>
                         </div>
 

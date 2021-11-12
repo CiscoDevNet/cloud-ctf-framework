@@ -5,9 +5,8 @@ import pprint
 
 import boto3
 from attr import dataclass
-from flask import Blueprint, render_template, Response
+from flask import Blueprint, render_template, Response, request
 from kubernetes.client import V1Job, ApiException
-from werkzeug.routing import Rule
 
 from CTFd.models import Challenges, db, TeamFieldEntries
 # from CTFd.schemas.fields import TeamFieldEntriesSchema
@@ -17,7 +16,7 @@ from CTFd.models import Teams
 from CTFd.utils.user import get_current_team, is_admin, authed
 from CTFd.schemas.teams import TeamSchema
 from CTFd.utils.logging import log
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Optional
 from kubernetes import client as k8sclient
 from kubernetes import config
 from .byoa_exception import ByoaException
@@ -31,6 +30,12 @@ class ByoaTeamAwsInfo:
     AWS_REGION: str
     AWS_ACCESS_KEY_ID: str
     AWS_SECRET_ACCESS_KEY: str
+
+@dataclass
+class ByoaMetadata:
+    admin_job_url_deploy: Optional[str] = None
+    admin_job_url_destroy: Optional[str] = None
+    is_admin: bool = False
 
 
 class ByoaChallengeEntry(Challenges):
@@ -66,7 +71,7 @@ class ByoaChallengeDeploys(db.Model):
         db.Integer, db.ForeignKey("challenges.id", ondelete="CASCADE")
     )
     team_id = db.Column(db.Integer, db.ForeignKey('teams.id', ondelete="CASCADE"))
-    # NOT_DEPLOYED, DEPLOYING, DEPLOYED, ERROR_DEPLOYING, SOLVED
+    # NOT_DEPLOYED, DEPLOYING, DEPLOYED, FAILED_DEPLOY, SOLVED, FAILED_DESTROY, DESTROYED
     deploy_status = db.Column(db.String(64), default="NOT_DEPLOYED")
     # stores random schemaless info, like messages from the deploy, or variables from the deploy, etc.
     ctf_metadata = db.Column(db.JSON, default=None)
@@ -118,8 +123,8 @@ class ByoaChallengeDeploys(db.Model):
         db.session.commit()
 
     def destroy_challenge(self):
-        if self.deploy_status != 'DEPLOYED':
-            err = "You can only destroy challenge when the deploy_status is DEPLOYED! It is currently "+self.deploy_status
+        if self.deploy_status not in ['DEPLOYED', 'FAILED_DEPLOY']:
+            err = "You can only destroy challenge when the deploy_status is DEPLOYED or FAILED_DEPLOY! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
 
 
@@ -143,7 +148,7 @@ class ByoaChallengeDeploys(db.Model):
             ae_dict = json.loads(ae.body)
             err = "Failed to deploy! Error (likely need to report to admin): " + ae_dict["message"]
             self.set_deploy_status_summary("I failed to destroy! Please reach out to admins for help :(")
-            self.deploy_status = 'FAILED_DESTROYING'
+            self.deploy_status = 'FAILED_DESTROY'
             db.session.commit()
             raise ByoaException(err, [err], 500, self)
 
@@ -156,14 +161,15 @@ class ByoaChallengeDeploys(db.Model):
             raise ByoaException(err, [err], 400, self)
 
         challenge = self.get_challenge()
+        bcd = get_or_create_byoa_cd(self.challenge_id, self.team_id)
         if challenge.api_base_uri == "challenge1":
-            validate_chalenge1()
+            return validate_chalenge1(bcd)
         elif challenge.api_base_uri == "challenge2":
-            validate_chalenge2()
+            validate_chalenge2(bcd)
         elif challenge.api_base_uri == "challenge5":
-            validate_chalenge5()
+            validate_chalenge5(bcd)
 
-    def get_challenge(self):
+    def get_challenge(self) -> ByoaChallengeEntry:
         return ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()
 
     def get_challenge_vpc(self):
@@ -194,8 +200,8 @@ class ByoaChallengeDeploys(db.Model):
 
     def reset_challenge_deploy(self):
         # TODO remove check for != DEPLOYING and DESTROYING after done development
-        if self.deploy_status != 'FAILED_DEPLOYED' and self.deploy_status != 'DEPLOYING' and self.deploy_status != 'DESTROYING' and self.deploy_status != 'FAILED_DESTROYING':
-            err = "You can only reset a chellenge deployment when it is in status FAILED_DEPLOYED! It is currently "+self.deploy_status
+        if self.deploy_status != 'FAILED_DEPLOY' and self.deploy_status != 'DEPLOYING' and self.deploy_status != 'DESTROYING' and self.deploy_status != 'FAILED_DESTROY':
+            err = "You can only reset a chellenge deployment when it is in status FAILED_DEPLOY! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
         self.deploy_status = 'NOT_DEPLOYED'
         self.set_deploy_status_summary("I Reset thangs")
@@ -218,13 +224,13 @@ class ByoaChallengeDeploys(db.Model):
         config.load_kube_config()
         batch_v1 = k8sclient.BatchV1Api()
         d_info = self.get_byoa_team_aws_info()
-        bchal = ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()
-        job_name=self.get_k8s_job_name('deploy', bchal.api_base_uri)
+        chal_ref = self.get_chal_ref()
+        job_name=self.get_k8s_job_name('deploy', chal_ref)
         log("CiscoCTF", "job_name is "+job_name)
         try:
-            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy', bchal.api_base_uri),
+            k8s_job = create_k8s_job_object(d_info, job_name, self.get_ccc_image_name('deploy', chal_ref),
                                             {"type": "challenge-deploy", "ctf-challenge-id": str(self.challenge_id),
-                                            "ctf-team-id": str(self.team_id)}, self.team_id, bchal.api_base_uri)
+                                            "ctf-team-id": str(self.team_id)}, self.team_id, chal_ref)
             job = run_k8s_job(batch_v1, k8s_job, get_k8s_namespace())
             # log("K8s Job created. status='%s'" % str(job.status))
 
@@ -235,6 +241,10 @@ class ByoaChallengeDeploys(db.Model):
             raise ByoaException(err, [err], 500, self)
 
         # TODO NEXT: figure out what we need to return here and how to rely info to end user inside of challenge
+
+    def get_chal_ref(self):
+        bchal = ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()
+        return bchal.api_base_uri
 
     def get_aws_challenge_vpc_label_name(self):
         return "cisco-cloud-ctf-challenge-"+str(self.challenge_id)
@@ -284,7 +294,7 @@ class ByoaChallengeDeploys(db.Model):
             err = "Failed get deploy job! Error (likely need to report to admin): " + ae_dict["message"]
             raise ByoaException(err, [err], 500, self)
 
-        log("CiscoCTF", "Job fetched: {job}", job=job)
+        # log("CiscoCTF", "Job fetched: {job}", job=job)
         return job
 
     def get_k8s_api(self) -> k8sclient.BatchV1Api:
@@ -301,6 +311,61 @@ class ByoaChallengeDeploys(db.Model):
         with open(self.get_terraform_path()) as json_file:
             data = json.load(json_file)
         return data
+
+    def check_k8s_job(self, job_type: str):
+        '''
+        This function just checks the k8s jub for deploy/destroy and if it finds it is successfully finished, it will update the deploy_status
+        This does not return anything, you will just use the self object (i.e. self.deploy_status will be updated after calling this if job is done)
+        :param job_type:
+        :return:
+        '''
+        # if self.deploy_status in ['NOT_DEPLOYED', 'DESTROYED', 'DEPLOYED', 'FAILED_DEPLOY', 'FAILED_DESTROY']:
+        # only need to update if one of these statuses
+        if self.deploy_status not in ['DEPLOYING', 'DESTROYING']:
+            return
+        # handle deploy
+        if job_type == 'deploy':
+            if self.deploy_status != 'DEPLOYING':
+                err = f"Can only check deploy job when deploy_status is 'DEPLOYING', but it is currently '{self.deploy_status}'"
+                raise ByoaException(err, [err], 500, self)
+
+            job = self.get_k8s_job(job_type, self.get_chal_ref())
+            orig_deploy_status = self.deploy_status
+            if job._status.succeeded:
+                # job is done, change to DEPLOYED
+                self.deploy_status = 'DEPLOYED'
+                db.session.commit()
+                log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
+                return
+
+            elif job._status.failed:
+                # job is done, change to DEPLOYED
+                self.deploy_status = 'FAILED_DEPLOY'
+                db.session.commit()
+                log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
+                return
+
+        elif job_type == 'destroy':
+            # check current status
+            if self.deploy_status != 'DESTROYING':
+                err = f"Can only check destory job when deploy_status is 'DESTROYING', but it is currently '{self.deploy_status}'"
+                raise ByoaException(err, [err], 500, self)
+
+            job = self.get_k8s_job(job_type, self.get_chal_ref())
+            orig_deploy_status = self.deploy_status
+            if job._status.succeeded:
+                # job is done, change to DEPLOYED
+                self.deploy_status = 'DESTROYED'
+                db.session.commit()
+                log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
+                return
+            elif job._status.failed:
+                # job is done, change to DEPLOYED
+                self.deploy_status = 'FAILED_DESTROY'
+                db.session.commit()
+                log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
+                return
+
 
 class ByoaChallenge(BaseChallenge):
     id = "byoa"  # Unique identifier used to register challenges
@@ -499,7 +564,6 @@ def load(app):
     @requires_auth
     def view_byoa_challenge_deploy(challenge_id, team_id=None):
         try:
-            # authed_or_fail()
             challenge = ByoaChallengeEntry.query.filter_by(id=challenge_id).first()
             if not challenge:
                 raise ByoaException("This challenge_id does not exist.", ["Invalid challenge_id! This challenge_id does not exist."], 404)
@@ -514,12 +578,30 @@ def load(app):
                 bcd = get_or_create_byoa_cd(challenge_id, team.id)
 
             k8s_job = None
+            job_name = ''
+            metadata = ByoaMetadata(is_admin=is_admin())
             if bcd.deploy_status in ['DEPLOYING', 'DEPLOYED', 'FAILED_DEPLOY']:
+                if request.args.get('check_job') == 'true':
+                    log("CiscoCTF", "checking on job...")
+                    bcd.check_k8s_job('deploy')
                 k8s_job = bcd.get_k8s_job('deploy', challenge.api_base_uri).__dict__
-            elif bcd.deploy_status in ['DESTROYING', 'FAILED_DESTROYING', 'DESTROYED']:
+                # job_name = k8s_job["_metadata"]["labels"]["job-name"]
+                job_name = f"{bcd.get_chal_ref()}-team{bcd.team_id}-deploy"
+                if is_admin():
+                    metadata.admin_job_url_deploy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name}#pods"
+            elif bcd.deploy_status in ['DESTROYING', 'FAILED_DESTROY', 'DESTROYED']:
+                if request.args.get('check_job') == 'true':
+                    log("CiscoCTF", "checking on job...")
+                    bcd.check_k8s_job('destroy')
                 k8s_job = bcd.get_k8s_job('destroy', challenge.api_base_uri).__dict__
+                # job_name = k8s_job._metadata.labels["job-name"]
+                job_name = f"{bcd.get_chal_ref()}-team{bcd.team_id}-destroy"
+                job_name_deploy = f"{bcd.get_chal_ref()}-team{bcd.team_id}-deploy"
+                if is_admin():
+                    metadata.admin_job_url_deploy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name_deploy}#pods"
+                    metadata.admin_job_url_destroy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name}#pods"
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
-                                   k8s_deploy_job=k8s_job)
+                                   k8s_deploy_job=k8s_job, metadata=metadata)
         except ByoaException as be:
             return be.get_response_from_exception()
 
@@ -552,7 +634,7 @@ def load(app):
             # deploy and set status in DB
             bcd.deploy_challenge()
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
-                                   banner={"msg": "Deploy Job started! Refresh this page to check the deploy status.", "level": "info"})
+                                   banner={"msg": "Deploy Job started!", "level": "info"})
         except ByoaException as be:
             return be.get_response_from_exception()
 
@@ -598,9 +680,10 @@ def load(app):
             else:
                 bcd = get_or_create_byoa_cd(challenge_id, team.id)
 
-            bcd.validate_challenge()
+            validation_result = bcd.validate_challenge()
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
-                                   banner={"msg": f"Validation code not implemented yet....", "level": "success"})
+                                   banner={"msg": f"Validation code not implemented yet....", "level": "success"},
+                                   validate_result=validation_result.__dict__)
         except ByoaException as be:
             return be.get_response_from_exception()
 
