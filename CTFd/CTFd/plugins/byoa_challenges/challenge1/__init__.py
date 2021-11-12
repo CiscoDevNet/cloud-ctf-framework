@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-# from .. import ByoaChallengeDeploys
-=======
-# from .. import ByoaChallengeDeploys
->>>>>>> 0f545aee483bbaf4dbcc913e2a9907a778ad3098
 import requests
 
 
