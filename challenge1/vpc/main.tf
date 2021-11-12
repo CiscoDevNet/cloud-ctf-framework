@@ -54,6 +54,7 @@ resource "aws_default_network_acl" "default" {
     ingress{
         #cidr_block = "106.203.219.180/32"
         cidr_block = "64.102.249.9/32" # public ip of the vm from where we would test 
+        #cidr_block = "72.163.220.7/32" #currently setting this local ip which is my machine as testing locally
         rule_no = 130
         action = "allow"
         protocol = "tcp"
@@ -71,7 +72,9 @@ resource "aws_default_network_acl" "default" {
         to_port = 0
         
     }
-    
+      tags = {
+      Name = "challenge1_nacl"
+    }
       
 }
 #Subnets This is a public subnet 
@@ -139,6 +142,9 @@ resource "aws_nat_gateway" "nat-gw" {
     allocation_id = aws_eip.nat.id
     subnet_id = aws_subnet.my-public.id
     depends_on = [aws_internet_gateway.main-igw]
+    tags = {
+        Name = "challenge1-nat-gw"
+    }
   
 }
 
@@ -151,7 +157,7 @@ resource "aws_route_table" "main-private" {
 
     }
     tags = {
-        Name = "nat-gw-private"
+        Name = "challenge1-route-table"
     }
   
 }
@@ -194,6 +200,9 @@ resource "aws_security_group" "vpc_security_group"{
         }
 
     }
+    tags = {
+        Name = "challenge1-security-group"
+    }
 
 }
 
@@ -203,8 +212,11 @@ output "vpc_id" {
     value = aws_vpc.ctf_challenge1_vpc.id
 }
 
-output "public_ip"{
+/*output "public_ip"{
     value= aws_subnet.my-public.map_public_ip_on_launch
 
 }
-
+*/
+output "public_ip" {
+    value = aws_instance.chall1http.public_ip
+}

@@ -1,4 +1,4 @@
-from .. import ByoaChallengeDeploys
+#from .. import ByoaChallengeDeploys
 import requests
 
 
