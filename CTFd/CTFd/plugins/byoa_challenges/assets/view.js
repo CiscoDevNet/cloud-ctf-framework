@@ -20,7 +20,7 @@ CTFd._internal.challenge.postRender = function () {
     destroy_btn = document.getElementById("challenge-destroy-btn")
 
     //enable destroy button
-    if(['DEPLOYED', 'FAILED_DEPLOY', 'FAILED_DESTROY'].find(this.data.deploy_status)){
+    if(['DEPLOYED', 'FAILED_DEPLOY', 'FAILED_DESTROY'].indexOf(this.data.deploy_status) !== -1){
         destroy_btn.classList.remove("hidden");
     }
 
