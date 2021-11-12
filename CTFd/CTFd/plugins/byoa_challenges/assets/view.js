@@ -16,6 +16,13 @@ CTFd._internal.challenge.postRender = function () {
     document.getElementById("challenge-cur-deploy-status-text").innerHTML = "Current Deploy Status for your team: "+this.data.deploy_status;
 
     deploy_btn = document.getElementById("challenge-deploy-btn")
+    validate_btn = document.getElementById("challenge-validate-btn")
+    destroy_btn = document.getElementById("challenge-destroy-btn")
+
+    //enable destroy button
+    if(['DEPLOYED', 'FAILED_DEPLOY', 'FAILED_DESTROY'].find(this.data.deploy_status)){
+        destroy_btn.classList.remove("hidden");
+    }
 
     if(this.data.deploy_status === 'DEPLOYING') {
         deploy_btn.classList.add("hidden");
@@ -24,6 +31,8 @@ CTFd._internal.challenge.postRender = function () {
 
         loader = document.getElementById("deploy-loader")
         loader.classList.remove("hidden");
+    }else if(this.data.deploy_status === 'DEPLOYED'){
+        validate_btn.classList.remove("hidden");
     }else if(this.data.deploy_status !== 'NOT_DEPLOYED'){
         deploy_btn.classList.add("hidden");
         deploy_btn.title = "You can only deploy when the status is NOT_DEPLOYED"

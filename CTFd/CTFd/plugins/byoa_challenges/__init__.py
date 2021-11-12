@@ -123,8 +123,8 @@ class ByoaChallengeDeploys(db.Model):
         db.session.commit()
 
     def destroy_challenge(self):
-        if self.deploy_status != 'DEPLOYED':
-            err = "You can only destroy challenge when the deploy_status is DEPLOYED! It is currently "+self.deploy_status
+        if self.deploy_status not in ['DEPLOYED', 'FAILED_DEPLOY']:
+            err = "You can only destroy challenge when the deploy_status is DEPLOYED or FAILED_DEPLOY! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
 
 
@@ -598,8 +598,8 @@ def load(app):
                 job_name = f"{bcd.get_chal_ref()}-team{bcd.team_id}-destroy"
                 job_name_deploy = f"{bcd.get_chal_ref()}-team{bcd.team_id}-deploy"
                 if is_admin():
-                    metadata.admin_job_url_deploy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name}#pods"
-                    metadata.admin_job_url_destroy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name_deploy}#pods"
+                    metadata.admin_job_url_deploy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name_deploy}#pods"
+                    metadata.admin_job_url_destroy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name}#pods"
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
                                    k8s_deploy_job=k8s_job, metadata=metadata)
         except ByoaException as be:
@@ -634,7 +634,7 @@ def load(app):
             # deploy and set status in DB
             bcd.deploy_challenge()
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
-                                   banner={"msg": "Deploy Job started! Refresh this page to check the deploy status.", "level": "info"})
+                                   banner={"msg": "Deploy Job started!", "level": "info"})
         except ByoaException as be:
             return be.get_response_from_exception()
 
