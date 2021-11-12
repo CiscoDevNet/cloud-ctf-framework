@@ -3,7 +3,7 @@
 ## In this challenge the snapshot is being made public which is a ec2 instance 
 
 ## Question : MR Company X has hired a new Cloud expert named Bob to look for the cloud migration for their infrastructure. He is a loyal guy and very experienced. 
-              Company has asked Bob to make sure no 'Classified' is being exposed to outside world....
+##              Company has asked Bob to make sure no 'Classified' is being exposed to outside world....
 
 
 ## Challenge Description:
