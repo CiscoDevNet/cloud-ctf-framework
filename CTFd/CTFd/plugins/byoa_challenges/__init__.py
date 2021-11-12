@@ -339,7 +339,7 @@ class ByoaChallengeDeploys(db.Model):
                 log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
                 return
 
-            elif job._status.failed:
+            elif job._status.failed >= 5:
                 # job is done, change to DEPLOYED
                 self.deploy_status = 'FAILED_DEPLOY'
                 db.session.commit()
@@ -360,7 +360,7 @@ class ByoaChallengeDeploys(db.Model):
                 db.session.commit()
                 log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
                 return
-            elif job._status.failed:
+            elif job._status.failed >= 5:
                 # job is done, change to DEPLOYED
                 self.deploy_status = 'FAILED_DESTROY'
                 db.session.commit()
