@@ -120,7 +120,9 @@
 
                         <p id="challenge-cur-deploy-status-text">Current Deploy Status for your team: Unknown</p>
                         <a href="/plugins/byoa_challenges/view/{{ challenge.id }}" target="_blank">View Deploy Info</a>
-
+                        <div id="reset-deploy-help" class="hidden">
+                            <p>Need to deploy again? Ask an admin to reset the status for you.</p>
+                        </div>
                         <div class="loader hidden" id="deploy-loader"></div>
                         <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
                             <div class="col-md-4">

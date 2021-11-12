@@ -33,12 +33,12 @@ CTFd._internal.challenge.postRender = function () {
     }else if(this.data.deploy_status === 'DEPLOYED'){
         validate_btn.classList.remove("hidden");
         deploy_btn.classList.add("hidden");
-
+    }else if(this.data.deploy_status === 'DESTROYED'){
+        reset_help = document.getElementById("reset-deploy-help")
+        reset_help.classList.remove("hidden");
     }else if(this.data.deploy_status !== 'NOT_DEPLOYED'){
         deploy_btn.classList.add("hidden");
         deploy_btn.title = "You can only deploy when the status is NOT_DEPLOYED"
-    }else{//it is NOT_DEPLOYED
-
     }
 }
 
