@@ -12,6 +12,14 @@
         {% if error %}
             {{ error }}
         {% endif %}
+        {% if validation_result %}
+            <h4>Validation Result</h4>
+            <p>Result: {{ 'You have done it!' if validation_result.result else 'You have not fixed the issue yet :(' }}</p>
+            <p>Message: {{ validation_result.message }}</p>
+            {% if validation_result.result %} }}
+                <p>Here is your flag: {{ validation_result.flag }}</p>
+            {% endif %}
+        {% endif %}
         {% if bcd %}
             <h3>{{ challenge.name }}</h3>
             <p>Local challenge ID: {{ challenge.id }}<br>
@@ -44,14 +52,6 @@
                     >Reset Failed</button></a>
                 </div>
             </div>
-            {% if validation_result %}
-                <h4>Validation Result</h4>
-                <p>Result: {{ 'You have done it!' if validation_result.result else 'You have not fixed the issue yet :(' }}</p>
-                <p>Message: {{ validation_result.message }}</p>
-                {% if validation_result.result %} }}
-                    <p>Here is your flag: {{ validation_result.flag }}</p>
-                {% endif %}
-            {% endif %}
             {% if k8s_deploy_job %}
                 <h3>Latest Job Details</h3>
                 <div class="row">
