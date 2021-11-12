@@ -3,7 +3,7 @@ from typing import Optional
 import requests
 from attr import dataclass
 
-
+# To fix the challenges one need to remove the any any rule at top (position 100) of NACL
 @dataclass
 class ByoaChallengeValidationReturn:
     message: str
@@ -23,7 +23,7 @@ def validate_chalenge(bcd):
     try:
         resp = requests.get(url, timeout=3) #3 seconds
     except Exception:
-        return ByoaChallengeValidationReturn(message="Note : Challenge Failed, Please try again", result=False)
+        return ByoaChallengeValidationReturn(message="You did something wrong....Try harder", result=False)
 
 
     #My External IP validation
@@ -35,13 +35,18 @@ def validate_chalenge(bcd):
 
         if 'timed' in extresp.text:
 
-            return {"Note:Challenge Validated Successfully --- flag{Cloud_security_Infra_important}"}
+            return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{Cloud_security_Infra_important}')
+
+            #return {"Note:Challenge Validated Successfully --- flag{Cloud_security_Infra_important}"}
 
 
         else:
-            return {"Note Challenge Failed, Please try again"}
+            return ByoaChallengeValidationReturn(message="Validation failed...You are closer...Try harder", result=False)
+            #return {"Note Challenge Failed, Please try again"}
     else:
+        return ByoaChallengeValidationReturn(message="You messed up badly...Try harder", result=False)
 
-        return {"Note Challenge Failed, Please try again"}
+
+        #return {"Note Challenge Failed, Please try again"}
 
 
