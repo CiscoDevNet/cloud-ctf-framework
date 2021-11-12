@@ -5,6 +5,7 @@ import requests
 def validate_chalenge(bcd):
     # TODO Bhavik to fill in validation code
     tf_data = bcd.get_terraform_state_dict()
+    return tf_data
     #url = tf_data['outputs']['public_ip']['value']
     real = tf_data['outputs']['public_ip']['value']
 
