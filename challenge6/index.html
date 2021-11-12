@@ -1,0 +1,31 @@
+<html>
+    <script>
+	function resetform() {
+  	   document.getElementById("response").innerHTML="";
+  	   document.getElementById("url").value="";
+	}
+    </script>
+    <script>
+        function deploy() {
+
+            let formData = new FormData();
+            formData.append('url', document.getElementById("url").value);
+
+            fetch("http://13.235.128.31:5000/", {
+                method: "POST",
+		body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                },
+            }).then(response => response.json())
+            .then(data => document.getElementById("response").innerHTML=data);
+        }
+    </script>
+   <body>
+         <p>Enter URL:</p>
+         <p><input type = "text" id="url" name = "url" /></p>
+         <p><input type = "submit" onclick="deploy()" value = "submit" /></p>
+         <p><input type = "reset" onclick="resetform()" value = "reset" /></p>
+	 <p id="response"></p>
+   </body>
+</html>

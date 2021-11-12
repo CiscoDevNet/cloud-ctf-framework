@@ -251,6 +251,7 @@ class ByoaChallengeDeploys(db.Model):
 
     def get_all_aws_vpcs(self):
         aws_info = self.get_byoa_team_aws_info()
+        print(aws_info)
         client = boto3.client('ec2', aws_access_key_id=aws_info.AWS_ACCESS_KEY_ID,
                               aws_secret_access_key=aws_info.AWS_SECRET_ACCESS_KEY, region_name=aws_info.AWS_REGION)
         describeVpc= client.describe_vpcs()
