@@ -1,10 +1,19 @@
-import requests
+from typing import Optional
 
+import requests
+from attr import dataclass
+
+
+@dataclass
+class ByoaChallengeValidationReturn:
+    message: str
+    result: bool
+    flag: Optional[str] = None
 
 def validate_chalenge(bcd):
     # TODO Bhavik to fill in validation code
     tf_data = bcd.get_terraform_state_dict()
-    return tf_data
+    # return tf_data
     #url = tf_data['outputs']['public_ip']['value']
     real = tf_data['outputs']['public_ip']['value']
 
@@ -14,8 +23,7 @@ def validate_chalenge(bcd):
     try:
         resp = requests.get(url, timeout=3) #3 seconds
     except Exception:
-
-        return {"Note : Challenge Failed, Please try again"}
+        return ByoaChallengeValidationReturn(message="Note : Challenge Failed, Please try again", result=False)
 
 
     #My External IP validation

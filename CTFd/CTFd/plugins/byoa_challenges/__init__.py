@@ -37,6 +37,12 @@ class ByoaMetadata:
     admin_job_url_destroy: Optional[str] = None
     is_admin: bool = False
 
+@dataclass
+class ByoaChallengeValidationReturn:
+    message: str
+    result: bool
+    flag: Optional[str] = None
+
 
 class ByoaChallengeEntry(Challenges):
     '''
