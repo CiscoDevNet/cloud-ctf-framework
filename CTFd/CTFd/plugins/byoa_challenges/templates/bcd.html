@@ -20,7 +20,7 @@
             <div class="row">
                 <p>Deploy status: {{ bcd.deploy_status }}</p>
                 {% if bcd.deploy_status == 'DEPLOYING' or bcd.deploy_status == 'DESTROYING' %}
-                    <a href="/plugins/byoa_challenges/view/{{ challenge.id }}?check_job=true" style="margin-left:5px">Check Status</a>
+                    <a href="/plugins/byoa_challenges/view/{{ challenge.id }}?check_job=true" style="margin-left:5px">Refresh Status</a>
                 {% endif %}
             </div>
             <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
