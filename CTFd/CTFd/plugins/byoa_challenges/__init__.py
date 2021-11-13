@@ -233,8 +233,9 @@ class ByoaChallengeDeploys(db.Model):
         vpcs = self.get_all_aws_vpcs()
 
         if len(vpcs)>=5:
-            self.fail_deploy("VPC greater than 5...In AWS, by default, only 5 VPC's are allowed. Please delete one or more VPC to get the challenge deployed.", 409)
-
+            self.deploy_status = 'NOT_DEPLOYED'
+            self.set_deploy_status_summary("Account has 5 or more VPCs. Could not deploy on last attempt. please destroy a VPC (another challege) in your account and try again.")
+            db.session.commit()
         # Do the deploy
         # aws_info = self.get_byoa_team_aws_info()
         config.load_kube_config()
