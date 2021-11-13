@@ -42,6 +42,6 @@ It would be better if the data is backup on alternate volume to maintain redunda
 We are using Pyhon module called Chalice to compute data and SQL3 to store data
 
 ## more /usr/bin/./Cloud
-QVdTX1NFQ1JFVF9LRVk6IGZsYWd7CkFXU19BQ0NFU1NfS0VZOiAkbmFwc2hvdHNfbWFkZV9wdWJsaWMKQVdTX1JFR0lPTjogX2V4cG9zZXNfY3JpdGljYWxfZGF0YX0=
+ZmxhZ3skbmFwc2hvdHNfbWFkZV9wdWJsaWNfZXhwb3Nlc19jcml0aWNhbF9kYXRhfQ==
 
  
