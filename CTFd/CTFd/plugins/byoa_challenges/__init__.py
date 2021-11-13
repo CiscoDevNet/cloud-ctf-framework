@@ -140,7 +140,7 @@ class ByoaChallengeDeploys(db.Model):
         db.session.commit()
 
     def destroy_challenge(self):
-        if self.deploy_status not in ['DEPLOYED', 'FAILED_DEPLOY']:
+        if self.deploy_status not in ['DEPLOYED', 'FAILED_DEPLOY', 'FAILED_DESTROY']:
             err = "You can only destroy challenge when the deploy_status is DEPLOYED or FAILED_DEPLOY! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
 

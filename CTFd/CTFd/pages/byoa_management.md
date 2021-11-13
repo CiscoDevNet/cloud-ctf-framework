@@ -5,7 +5,7 @@ The majority of the challenges in this CTF are "BYOA" challenges, which require 
 This document describes how you will interact with these challenges.
 
 ## Deploy
-To deploy a challenge you just need to click the "Deploy button". This will schedule a job to deploy the challenge to your AWS account.
+To deploy a challenge you just need to click the `Deploy` button. This will schedule a job to deploy the challenge to your AWS account.
 <img src="/files/2541ad789c9551b9bde9e09f7ebcb379/challenge_view_not_deployed.png" alt="challenge_view_not_deployed" width="400"/>
 <hr>
 Click the "Refresh Status" to check and update the current status of the deployment.
