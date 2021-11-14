@@ -1,0 +1,4 @@
+FROM scalr/terraform:1.0.9
+COPY . .
+RUN chmod +x destroy.sh
+ENTRYPOINT ["sh","destroy.sh"]
