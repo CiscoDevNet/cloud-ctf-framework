@@ -7,3 +7,4 @@ challenge*/terraform.tfstate
 challenge*/*/.terraform*
 challenge*/*/terraform.tfstate
 .data
+challenge*/*/terraform*
