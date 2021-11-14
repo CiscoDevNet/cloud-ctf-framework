@@ -1,6 +1,17 @@
 
 Challenge 1:
 
+## Question for participants:
+
+Company Venezula has came up with application which they want to make sure have access to only the Dev team over Internet. They have allocated static public ip to Dev team and also made sure only they can access the application. Could you verify if the security is correctly in place?
+
+Once you have made sure you have done Security Audit you can hit validate to get the flag
+
+Note: You need to make changes to the exsiting security policy if you feel its not correct. 
+
+## Below description is for internal 
+
+
 Security Misconfiguration : This challenge shows the incorrect configuration in deploying vpc with default nacl
 
 Vulnerability : the default nacl which gets applied to vpc allows all traffic. The allow all rule is at top while the other specific rules are at bottom.
