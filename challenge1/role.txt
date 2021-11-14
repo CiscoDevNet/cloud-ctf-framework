@@ -1,0 +1,15 @@
+#policy name : chall1-deploy
+#arn : arn:aws:iam::893813948482:policy/chall1-deploy
+
+
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": "ec2:*",
+            "Resource": "*"
+        }
+    ]
+}
