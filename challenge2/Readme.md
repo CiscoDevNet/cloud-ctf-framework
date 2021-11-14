@@ -12,7 +12,7 @@ The http application gives a html verdict as below
 The rfc5785 talks abt a secret ./well-known method being hidden in the application . The flag is hidden inside the path.
    
 <p align="center">
-    <img src="/Users/bhavsha2/Desktop/Screenshot 2021-11-14 at 9.54.04 AM">
+    <img src="./secure.png">
 </p>
 
 # External 
