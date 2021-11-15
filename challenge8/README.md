@@ -2,7 +2,7 @@
 
     Challenge Name: Challenge 1.8
 
-    Question: As a cloud admin you have to increases account resiliency against brute force login attempts.
+    Question: As a cloud admin you have to increase account resiliency against brute force login attempts.
 
     Hint: The answer is there in the challenge if you know where to look.
     
