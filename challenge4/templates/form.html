@@ -1,0 +1,52 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  </head>
+  <body>
+    <script>
+        function resetform() {
+           document.getElementById("response").innerHTML="";
+           document.getElementById("url").value="";
+        }
+    </script>
+    <script>
+        function deploy() {
+
+            let formData = new FormData();
+            formData.append('url', document.getElementById("url").value);
+            fetchURL=document.URL;
+
+            fetch(fetchURL, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                },
+            }).then(response => response.json())
+            .then(data => document.getElementById("response").innerHTML=data);
+        }
+    </script>
+     <p>Enter URL:</p>
+
+
+     <form method="post">
+		<input type="text" id="url" name="url">
+		<br>
+		<br>
+		{{ captcha() }}
+		<br>
+        <input type="text" name="captcha">
+        <input type="submit" name="submit">
+		<button type="button" class="btn btn-secondary" onclick="resetform()">Reset</button>
+    </form>
+
+     <br>
+     <br>
+      <p id="response"></p>
+  </body>
+</html>
