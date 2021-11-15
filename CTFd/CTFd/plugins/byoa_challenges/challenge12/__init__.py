@@ -25,7 +25,7 @@ def validate_chalenge(bcd):
     temp3 = temp2.get('ApplyServerSideEncryptionByDefault')
     enc_algo = temp3.get('SSEAlgorithm')
     if enc_algo == 'AES256' or enc_algo == 'aws:kms':
-        return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{s3bucketencryptedatrest"}')
+        return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{s3bucketencryptedatrest}')
     else:
         return ByoaChallengeValidationReturn(message="You did something wrong....Try harder", result=False)
 

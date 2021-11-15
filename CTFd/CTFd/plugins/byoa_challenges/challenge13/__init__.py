@@ -21,7 +21,7 @@ def validate_chalenge(bcd):
         return ByoaChallengeValidationReturn(message="You did something wrong....Try harder", result=False)
     temp1 = pub_acc_block.get('PublicAccessBlockConfiguration')
     if temp1 == to_check:
-        return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{s3bucketmadeprivate"}')
+        return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{s3bucketmadeprivate}')
     else:
         return ByoaChallengeValidationReturn(message="You did something wrong....Try harder", result=False)
 

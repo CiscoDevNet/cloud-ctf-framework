@@ -31,7 +31,7 @@ def validate_chalenge(bcd):
             continue
         flags = trail.get('LogFileValidationEnabled')
         if flags:
-            return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{LogFileValidationEnabled"}')
+            return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{LogFileValidationEnabled}')
         else:
             return ByoaChallengeValidationReturn(message="You did something wrong....Try harder", result=False)
 
