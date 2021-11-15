@@ -1,34 +1,36 @@
 <?php
-$link = mysql_connect('Your Database Server address here', 'myuser', 'mypassword');
-if (!$link)
+require_once('../db_creds.php');
+$mysql = mysqli_connect($mysql_host, $mysql_user, $mysql_pw, $mysql_db);
+if (!$mysql)
 {
-die('Could not connect: ' . mysql_error());
+die('Could not connect: ' . mysqli_error($mysql));
 }
 else
 {
-$selectdb = mysql_select_db("mydb");
+$selectdb = mysqli_select_db($mysql, $mysql_db);
 if (!$selectdb)
 {
-die('Could not connect: ' . mysql_error());
+die('Could not connect: ' . mysqli_error($mysql));
 }
 else
 {
-$data = mysql_query("SELECT visits FROM counter");
+echo "Connected to the database!";
+$data = mysqli_query($mysql, "SELECT visits FROM counter");
 if (!$data)
 {
-die('Could not connect: ' . mysql_error());
+die('Could not connect: ' . mysqli_error($mysql));
 }
 else
 {
-$add=mysql_query("UPDATE counter SET visits = visits+1");
+$add=mysqli_query($mysql,"UPDATE counter SET visits = visits+1");
 if(!$add)
 {
-die('Could not connect: ' . mysql_error());
+die('Could not connect: ' . mysqli_error($mysql));
 }
 else
 {
 print "<table><tr><th>Visits</th></tr>";
-while($value=mysql_fetch_array($data))
+while($value=mysqli_fetch_array($mysql,$data))
 {
 print "<tr><td>".$value['visits']."</td></tr>";
 }
@@ -37,5 +39,5 @@ print "</table>";
 }
 }
 }
-mysql_close($link);
+mysqli_close($mysql);
 ?>
