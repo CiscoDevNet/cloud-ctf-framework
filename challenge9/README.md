@@ -2,7 +2,7 @@
 
     Challenge Name: Challenge 1.9
 
-    Question: As a cloud admin you have to increases account resiliency against brute force login attempts even further.
+    Question: As a cloud admin you have to increase account resiliency against brute force login attempts even further.
 
     Hint: Maybe the 2nd R in 3R's should be prevented and yeah the answer is there in the challenge if you know where to look.
     
