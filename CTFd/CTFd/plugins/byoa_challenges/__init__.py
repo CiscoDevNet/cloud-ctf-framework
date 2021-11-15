@@ -24,6 +24,7 @@ from functools import wraps
 from .challenge1 import validate_chalenge as validate_chalenge1
 from .challenge2 import validate_chalenge as validate_chalenge2
 from .challenge5 import validate_chalenge as validate_chalenge5
+from .challenge8 import validate_chalenge as validate_chalenge8
 
 @dataclass
 class ByoaTeamAwsInfo:
@@ -180,9 +181,11 @@ class ByoaChallengeDeploys(db.Model):
         if challenge.api_base_uri == "challenge1":
             return validate_chalenge1(bcd)
         elif challenge.api_base_uri == "challenge2":
-            validate_chalenge2(bcd)
+            return validate_chalenge2(bcd)
         elif challenge.api_base_uri == "challenge5":
-            validate_chalenge5(bcd)
+            return validate_chalenge5(bcd)
+        elif challenge.api_base_uri == "challenge8":
+            return validate_chalenge8(bcd)
 
     def get_challenge(self) -> ByoaChallengeEntry:
         return ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()
@@ -702,6 +705,8 @@ def load(app):
                 bcd = get_or_create_byoa_cd(challenge_id, team.id)
 
             validation_result = bcd.validate_challenge()
+            print('validation_result')
+            print(validation_result)
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
                                    validation_result=validation_result.__dict__)
         except ByoaException as be:
