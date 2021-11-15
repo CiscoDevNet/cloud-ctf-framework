@@ -12,7 +12,6 @@ class ByoaChallengeValidationReturn:
 
 def validate_chalenge(bcd):
     tf_data = bcd.get_terraform_state_dict()
-    print(bcd.get_byoa_team_aws_info())
     # return tf_data
     #url = tf_data['outputs']['public_ip']['value']
     real = tf_data['outputs']['public_ip']['value']

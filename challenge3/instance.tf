@@ -5,7 +5,7 @@ resource "aws_key_pair" "mykey"{
 }
 
 resource "aws_instance" "chall1http"{
-    ami = "ami-01cc34ab2709337aa"
+    ami= lookup(var.images, var.AWS_REGION)
     instance_type="t2.micro"
     key_name = aws_key_pair.mykey.key_name
     subnet_id = aws_subnet.my-public.id

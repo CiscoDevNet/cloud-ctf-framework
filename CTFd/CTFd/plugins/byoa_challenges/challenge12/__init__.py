@@ -13,9 +13,12 @@ class ByoaChallengeValidationReturn:
 
 def validate_chalenge(bcd):
 
+    tf_data = bcd.get_terraform_state_dict()
+    bucket_name = tf_data['outputs']['bucket_name']['value']
+
     s3 = boto3.client('s3', aws_access_key_id=bcd.get_byoa_team_aws_info().AWS_ACCESS_KEY_ID, aws_secret_access_key=bcd.get_byoa_team_aws_info().AWS_SECRET_ACCESS_KEY, region_name=bcd.get_byoa_team_aws_info().AWS_REGION)
     try:
-        buck_rules = s3.get_bucket_encryption(Bucket="ctf-important-logs")
+        buck_rules = s3.get_bucket_encryption(Bucket=bucket_name)
     except s3.exceptions.NoSuchBucket:
        return ByoaChallengeValidationReturn(message="You did something wrong....Try harder", result=False)
     except s3.exceptions.ClientError:

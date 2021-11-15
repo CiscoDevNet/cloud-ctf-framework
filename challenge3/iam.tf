@@ -35,9 +35,7 @@ resource "aws_iam_role_policy" "CTF-Infra1" {
   "Statement": [
     {
       "Action": [
-        "ec2:AuthorizeSecurityGroupIngress",
-                "s3:List*",
-                "s3:Get*"
+        "ec2:*"
       ],
       "Effect": "Allow",
       "Resource": "*"

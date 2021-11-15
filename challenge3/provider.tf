@@ -17,4 +17,3 @@ terraform {
         path = "/var/data/terraform/terraform.tfstate"
     }
 }
-

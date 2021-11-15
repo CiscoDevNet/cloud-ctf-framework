@@ -79,7 +79,7 @@ resource "aws_subnet" "my-public" {
     vpc_id = aws_vpc.ssrf-vpc.id
     cidr_block = "12.0.1.0/24"
     map_public_ip_on_launch = "true"
-    availability_zone = "us-east-1a"
+    availability_zone = lookup(var.availability_zone , var.AWS_REGION)
     tags = {
         Name = "ssrf-public-1"
     }
@@ -91,7 +91,7 @@ resource "aws_subnet" "my-private" {
     vpc_id = aws_vpc.ssrf-vpc.id
     cidr_block = "12.0.2.0/24"
     map_public_ip_on_launch = "false"
-    availability_zone = "us-east-1a"
+    availability_zone = lookup(var.availability_zone , var.AWS_REGION)
     tags = {
       Name = "ssrf-private-1"
     }

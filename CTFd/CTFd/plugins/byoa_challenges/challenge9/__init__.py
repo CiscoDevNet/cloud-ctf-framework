@@ -29,7 +29,7 @@ def validate_chalenge(bcd):
     pass_pol = get_pass_pol(bcd)
     
     if pass_pol.get("error"):
-            return ByoaChallengeValidationReturn(message="Internal Error", result=False)
+        return ByoaChallengeValidationReturn(message="Internal Error", result=False)
     pass_repe = pass_pol.get("PasswordReusePrevention")
     if pass_repe and (type(pass_repe) == int) and (1 <= pass_repe <= 24):
         return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{preventpasswordreuse24}')

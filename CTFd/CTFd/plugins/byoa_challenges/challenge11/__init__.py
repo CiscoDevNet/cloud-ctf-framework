@@ -29,7 +29,9 @@ def validate_chalenge(bcd):
     for index, trail in enumerate(trails):
         if trail['Name'] != "ctf-demo-trail":
             continue
+
         flags = trail.get('LogFileValidationEnabled')
+        
         if flags:
             return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{LogFileValidationEnabled}')
         else:
