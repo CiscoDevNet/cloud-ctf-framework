@@ -14,7 +14,7 @@ def get_desc_trails(bcd):
      cloudtrail = boto3.client('cloudtrail', aws_access_key_id=bcd.get_byoa_team_aws_info().AWS_ACCESS_KEY_ID, aws_secret_access_key=bcd.get_byoa_team_aws_info().AWS_SECRET_ACCESS_KEY, region_name=bcd.get_byoa_team_aws_info().AWS_REGION)
      
      try:
-         trails = cloudtrail.client.describe_trails() 
+         trails = cloudtrail.describe_trails()
      except cloudtrail.client.exceptions.DBClusterNotFoundFault:
          return None
      return trails.get('trailList')
