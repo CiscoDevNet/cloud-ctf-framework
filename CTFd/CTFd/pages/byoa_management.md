@@ -14,10 +14,11 @@
    2. In the policy JSON, you will need to replace 2 variables. open the json in a text edit and make the following find/replace all:
 
    Replace `${Region}` with the aws region you are planning to use i.e. `ap-south-1`  
-   Replace `${Account}` with your AWS account ID (12 digit number). [Finding your AWS account ID](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html#FindingYourAccountIdentifiers)
-   3. Log into AWS console with your root user or an admin user and create a new IAM policy. [Shortcut Link](https://console.aws.amazon.com/iam/home#/policies$new?step=edit)  
+   Replace `${Account}` with your AWS account ID (12 digit number). [Finding your AWS account ID](https://docs.aws.amazon.com/general/latest/gr/acct-identifiers.html#FindingYourAccountIdentifiers)  
+   
+   4. Log into AWS console with your root user or an admin user and create a new IAM policy. [Shortcut Link](https://console.aws.amazon.com/iam/home#/policies$new?step=edit)  
       Go to the JSON tab and paste in the contents from the JSON file (from step 1) and then click continue. Add any tags, then Click `Next:Review`.
-   4. Give the policy a name and description and then click `create`.
+   5. Give the policy a name and description and then click `create`.
 4. Create new user in AWS and assign the policy.
    1. You will create a user using the IAM service. [AWS Console Link](https://console.aws.amazon.com/iam/home#/users$new?step=details)
    2. To assign the role, pick the "Attach existing policies directly" option. Search for the policy you created, select it and hit next and continue through and create the user.
