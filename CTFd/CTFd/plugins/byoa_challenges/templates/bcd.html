@@ -24,11 +24,18 @@
             <h3>{{ challenge.name }}</h3>
             <div class="row">{{ challenge.description|safe }}</div>
             <div class="row" style="margin-top: 20px">
-                <p>Deploy status: {{ bcd.deploy_status }}</p>
+                <p><strong>Deploy status</strong>: {{ bcd.deploy_status }}</p>
                 {% if bcd.deploy_status == 'DEPLOYING' or bcd.deploy_status == 'DESTROYING' %}
                     <a href="/plugins/byoa_challenges/view/{{ challenge.id }}?check_job=true" style="margin-left:5px">Refresh Status</a>
                 {% endif %}
             </div>
+            {% if bcd.ctf_metadata %}
+                {% if bcd.ctf_metadata.status_summary %}
+                    <div class="row">
+                <p><strong>Current status summary</strong>: {{  bcd.ctf_metadata.status_summary }}</p>
+                    </div>
+                {%  endif %}
+            {%  endif %}
             <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
                 {% if bcd.deploy_status == 'NOT_DEPLOYED'%}
                 <div class="col-md-3">
@@ -78,11 +85,6 @@
             {% endif %}
         {% endif %}
         {% block challenge_content %}
-            {% if bcd.ctf_metadata %}
-                {% if bcd.ctf_metadata.status_summary %}
-                    <p><strong>Current status summary: {{  bcd.ctf_metadata.status_summary }}</strong></p>
-                {%  endif %}
-            {%  endif %}
             <!-- Put custom code for each challenge here -->
         {% endblock %}
     {% if bcd.byoa_metadata %}
