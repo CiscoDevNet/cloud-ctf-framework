@@ -411,6 +411,7 @@ class ByoaChallengeDeploys(db.Model):
             if job._status.succeeded:
                 # job is done, change to DEPLOYED
                 self.deploy_status = 'DESTROYED'
+                self.set_deploy_status_summary("Successfully Destroyed this challenge. If you need to re-deploy, reach out to an admin.")
                 db.session.commit()
                 log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
                 return
