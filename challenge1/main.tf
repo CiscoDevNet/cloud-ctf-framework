@@ -131,43 +131,6 @@ resource "aws_route_table_association" "main-public-1-a" {
   
 }
 
-resource "aws_eip" "nat" {
-    vpc = true
-  
-}
-
-#NAt GAteway 
-
-resource "aws_nat_gateway" "nat-gw" {
-    allocation_id = aws_eip.nat.id
-    subnet_id = aws_subnet.my-public.id
-    depends_on = [aws_internet_gateway.main-igw]
-    tags = {
-        Name = "challenge1-nat-gw"
-    }
-  
-}
-
-#VPC Setup for NAT
-resource "aws_route_table" "main-private" {
-    vpc_id = aws_vpc.ctf_challenge1_vpc.id
-    route {
-        cidr_block = "0.0.0.0/0"
-        nat_gateway_id = aws_nat_gateway.nat-gw.id
-
-    }
-    tags = {
-        Name = "challenge1-route-table"
-    }
-  
-}
-
-#Route association private 
-resource "aws_route_table_association" "main-private-1-a" {
-    subnet_id = aws_subnet.my-private.id
-    route_table_id = aws_route_table.main-private.id
-}
-
 
 
 resource "aws_security_group" "vpc_security_group"{
@@ -212,11 +175,6 @@ output "vpc_id" {
     value = aws_vpc.ctf_challenge1_vpc.id
 }
 
-/*output "public_ip"{
-    value= aws_subnet.my-public.map_public_ip_on_launch
-
-}
-*/
 output "public_ip" {
     value = aws_instance.chall1http.public_ip
 }
