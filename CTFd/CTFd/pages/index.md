@@ -28,7 +28,9 @@ Some challenges will involve deploying infrastructure into the cloud, and you ne
 
 Note: The challenges will only support deploying to the follow AWS regions:
 
-`ap-south-1`, `us-east-1`, `eu-west-2`
+`ap-south-1`  
+`us-east-1`  
+`eu-west-2`
 
 During the Registration kindly make sure the region you choose as all the challenges would be deployed in that region and cannot be changed later. If you make a mistake when registering your team, please just let the admins know and they can correct the information for you.
 
