@@ -16,6 +16,8 @@ IMPORTANT: It will be assumed that you are providing an account which is still i
 
 The challenges are designed to work with free account without any additional costs, assuming the free account still has free quota left and is still in the free trial period.
 
+[See more information about how to set up and provide credentials](https://cloudctfseccon2021.cisco.com/byoa_info)
+
 
 <h3>What is the format of this CTF? </h3>
 
