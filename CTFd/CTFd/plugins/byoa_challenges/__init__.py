@@ -31,6 +31,7 @@ from .challenge11 import validate_chalenge as validate_chalenge11
 from .challenge12 import validate_chalenge as validate_chalenge12
 from .challenge13 import validate_chalenge as validate_chalenge13
 from .challenge3 import validate_chalenge as validate_chalenge3
+from .challenge14 import validate_chalenge as validate_chalenge14
 @dataclass
 class ByoaTeamAwsInfo:
     AWS_REGION: str
@@ -205,6 +206,8 @@ class ByoaChallengeDeploys(db.Model):
             return validate_chalenge13(bcd)
         elif challenge.api_base_uri == "challenge3":
             return validate_chalenge3(bcd)
+        elif challenge.api_base_uri == "challenge14":
+            return validate_chalenge14(bcd)
 
     def get_challenge(self) -> ByoaChallengeEntry:
         return ByoaChallengeEntry.query.filter_by(challenge_id=self.challenge_id).first()

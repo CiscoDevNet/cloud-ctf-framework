@@ -39,8 +39,12 @@ def url():
           user = request.form['url']
           print(user)
           try:
-              resp = requests.get(user)
-              return render_template("index.html",abc=resp.text)
+              resp = requests.get(user, stream=True)
+              if int(resp.headers.get('Content-Length', 0)) > 1024:
+                  return render_template('excp.html')
+              chunk = resp.raw.read(1024)
+              resp.close() 
+              return render_template("index.html",abc=chunk)
           except Exception as e:
               return render_template('excp.html')
       else:

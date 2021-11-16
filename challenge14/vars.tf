@@ -1,14 +1,11 @@
-variable "AWS_REGION"{
-    default = "ap-south-1"
-    #default = "us-east-1"
-  
-    
+variable "AWS_REGION" {
+  default = "ap-south-1"
 }
 
-
-
-variable "username" {
-  type = "list"
-  default = ["dev","prod"]
-  
-  }
+variable "AWS_ACCESS_KEY_ID" {
+  type = string
+}
+variable "AWS_SECRET_ACCESS_KEY" {
+  type      = string
+  sensitive = true
+}
