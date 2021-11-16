@@ -7,6 +7,7 @@ import boto3
 from attr import dataclass
 from flask import Blueprint, render_template, Response, request
 from kubernetes.client import V1Job, ApiException
+from sqlalchemy.orm.attributes import flag_modified
 
 from CTFd.models import Challenges, db, TeamFieldEntries
 # from CTFd.schemas.fields import TeamFieldEntriesSchema
@@ -140,9 +141,13 @@ class ByoaChallengeDeploys(db.Model):
         md = self.ctf_metadata
         if not md:
             md = {}
+        log("CiscoCTF", "ctf_metadata currently: {md}", md=md)
         md["status_summary"] = summary_message
+        log("CiscoCTF", "setting summary_message to: {message}", message=summary_message)
         self.ctf_metadata = md
+        flag_modified(self, "ctf_metadata")
         db.session.commit()
+        log("CiscoCTF", "ctf_metadata after update status_summary: {md}", md=self.ctf_metadata)
 
     def destroy_challenge(self):
         if self.deploy_status not in ['DEPLOYED', 'FAILED_DEPLOY', 'FAILED_DESTROY']:
@@ -247,7 +252,14 @@ class ByoaChallengeDeploys(db.Model):
         db.session.commit()
 
         # Check VPC count
-        vpcs = self.get_all_aws_vpcs()
+        try:
+            vpcs = self.get_all_aws_vpcs()
+        except Exception as e:
+            log("CiscoCTF", "Exception when deploying: {e}", e=e)
+            self.deploy_status = 'NOT_DEPLOYED'
+            self.set_deploy_status_summary("Failed to start deploy. Unable to list VPCs for this account, make sure team AWS credentials are valid.")
+            db.session.commit()
+            raise e
 
         if len(vpcs)>=5:
             self.deploy_status = 'NOT_DEPLOYED'
@@ -286,11 +298,16 @@ class ByoaChallengeDeploys(db.Model):
 
     def get_all_aws_vpcs(self):
         aws_info = self.get_byoa_team_aws_info()
-        print(aws_info)
-        client = boto3.client('ec2', aws_access_key_id=aws_info.AWS_ACCESS_KEY_ID,
+        # print(aws_info)
+        try:
+            client = boto3.client('ec2', aws_access_key_id=aws_info.AWS_ACCESS_KEY_ID,
                               aws_secret_access_key=aws_info.AWS_SECRET_ACCESS_KEY, region_name=aws_info.AWS_REGION)
-        describeVpc= client.describe_vpcs()
-        return describeVpc['Vpcs']
+
+            describeVpc = client.describe_vpcs()
+            return describeVpc['Vpcs']
+        except Exception as e:
+            err = "Failed to deploy! Make sure the AWS credentials your team provided are valid, and reach out to an admin for assistance."
+            raise ByoaException(err, [err], 500, self)
 
     def get_k8s_job_name(self, job_type: str, chal_ref: str):
         '''
@@ -614,7 +631,6 @@ def load(app):
                 bcd = get_or_create_byoa_cd(challenge_id, team_id)
             else:
                 bcd = get_or_create_byoa_cd(challenge_id, team.id)
-
             k8s_job = None
             job_name = ''
             metadata = bcd.get_byoa_metadata()
