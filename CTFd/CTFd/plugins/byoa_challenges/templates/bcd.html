@@ -26,7 +26,7 @@
             <div class="row" style="margin-top: 20px">
                 <p><strong>Deploy status</strong>: {{ bcd.deploy_status }}</p>
                 {% if bcd.deploy_status == 'DEPLOYING' or bcd.deploy_status == 'DESTROYING' %}
-                    <a href="/plugins/byoa_challenges/view/{{ challenge.id }}?check_job=true" style="margin-left:5px">Refresh Status</a>
+                    <a href="/plugins/byoa_challenges/view/{{ bcd.challenge_id }}?check_job=true" style="margin-left:5px">Refresh Status</a>
                 {% endif %}
             </div>
             {% if bcd.ctf_metadata %}
