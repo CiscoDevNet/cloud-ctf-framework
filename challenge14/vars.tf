@@ -1,5 +1,14 @@
 variable "AWS_REGION"{
-    default = "ap-south-1" # change this to different region to verify if the s3 backend error appears
+    default = "ap-south-1"
+    #default = "us-east-1"
+  
     
 }
 
+
+
+variable "username" {
+  type = "list"
+  default = ["dev","prod"]
+  
+  }
