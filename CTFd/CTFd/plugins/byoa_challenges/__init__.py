@@ -236,8 +236,7 @@ class ByoaChallengeDeploys(db.Model):
     # TODO NEXT: figure out what we need to return here and how to relay info to end user inside of challenge
 
     def reset_challenge_deploy(self):
-        # TODO remove check for != DEPLOYING and DESTROYING after done development
-        if self.deploy_status not in ['FAILED_DEPLOY', 'DEPLOYING' , 'DESTROYING', 'FAILED_DESTROY', 'DESTROYED']:
+        if self.deploy_status not in ['FAILED_DEPLOY', 'FAILED_DESTROY', 'DESTROYED']:
             err = "You can only reset a challenge deployment when it is in status FAILED_DEPLOY! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
         self.deploy_status = 'NOT_DEPLOYED'
@@ -410,8 +409,11 @@ class ByoaChallengeDeploys(db.Model):
             orig_deploy_status = self.deploy_status
             if job._status.succeeded:
                 # job is done, change to DEPLOYED
+                batch_v1 = k8sclient.BatchV1Api()
+                delete_k8s_job(batch_v1, self.get_k8s_job_name("deploy", self.get_chal_ref()), get_k8s_namespace())
+                delete_k8s_job(batch_v1, self.get_k8s_job_name("destroy", self.get_chal_ref()), get_k8s_namespace())
                 self.deploy_status = 'DESTROYED'
-                self.set_deploy_status_summary("Successfully Destroyed this challenge. If you need to re-deploy, reach out to an admin.")
+                self.set_deploy_status_summary("Successfully Destroyed this challenge. If you need to re-deploy, you can click the reset button.")
                 db.session.commit()
                 log("CiscoCTF", f"changed deploy_status from {orig_deploy_status} to {self.deploy_status}")
                 return
@@ -542,6 +544,14 @@ def run_k8s_job(api_instance: k8sclient.BatchV1Api, job: V1Job, namespace="defau
     return api_response
 
 
+def delete_k8s_job(api_instance: k8sclient.BatchV1Api, job_name: str, namespace="default") -> V1Job:
+    api_response = api_instance.delete_namespaced_job(
+        name=job_name,
+        namespace=namespace)
+    # log("Job created. status='%s'" % str(api_response.status))
+    return api_response
+
+
 def get_or_create_byoa_cd(challenge_id, team_id) -> ByoaChallengeDeploys:
     byoa_cd = get_byoa_cd(challenge_id, team_id)
     if byoa_cd:
@@ -644,7 +654,7 @@ def load(app):
                 job_name = f"{bcd.get_chal_ref()}-team{bcd.team_id}-deploy"
                 if is_admin():
                     metadata.admin_job_url_deploy=f"https://rancher-cloudctfseccon2021.cisco.com/dashboard/c/local/explorer/batch.job/{get_k8s_namespace()}/{job_name}#pods"
-            elif bcd.deploy_status in ['DESTROYING', 'FAILED_DESTROY', 'DESTROYED']:
+            elif bcd.deploy_status in ['DESTROYING', 'FAILED_DESTROY']:
                 if request.args.get('check_job') == 'true':
                     log("CiscoCTF", "checking on job...")
                     bcd.check_k8s_job('destroy')

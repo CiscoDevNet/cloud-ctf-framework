@@ -58,9 +58,16 @@
                     </a>
                 </div>
                 {%  endif %}
+                {% if bcd.deploy_status == 'DESTROYED' %}
+                    <div class="col">
+                        <a href="/plugins/byoa_challenges/reset/{{ challenge.id }}">
+                            <button class="btn btn-outline-secondary btn-outlined" id="challenge-reset-btn" title="Reset to NOT_DEPLOYED so you can deploy again."
+                        >Reset Status</button></a>
+                    </div>
+                {% endif %}
             </div>
             {% if bcd.deploy_status == 'DESTROYED' %}
-                <p>Need to deploy again? Ask an admin to reset the status for you.</p>
+                <p>Need to deploy again? Click the reset button.</p>
             {% endif %}
             {% if k8s_deploy_job %}
                 <h3>Latest Job Details</h3>
