@@ -24,7 +24,7 @@ def validate_chalenge(bcd):
     url=response['Reservations'][0]['Instances'][0]['MetadataOptions']['HttpTokens']
 
 
-    if url=='required':
+    if url=='required' | url=='disabled':
         return ByoaChallengeValidationReturn(message="Challenge Validated Successfully ", result=True, flag='flag{ec2_metadata_v2_is_more_secure}')
     else:
         return ByoaChallengeValidationReturn(message="You did something wrong....Try harder", result=False)
