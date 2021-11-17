@@ -51,7 +51,7 @@ def validate_chalenge(bcd) -> ByoaChallengeValidationReturn:
     if "Connected to the database!" in body:
         msg = "It looks like you found maria!<br>"+ "Here is the flag for 'My First Cloud LAMP': '" + get_flag('connected') + "'"
         if "Could not find my table?" in body:
-            msg = msg + "<br>For the current state of the application you have earned the flag for 'My First Cloud LAMP'."
+            msg = msg + "<br>For the current state of the application you have earned the flag for 'My First Cloud LAMP'. Note there are still more issues to fix in this application in order to get the remaining flags."
             return ByoaChallengeValidationReturn(result=True, message=msg, flag=get_flag('connected'))
         else:
             issue_cnt = 0
