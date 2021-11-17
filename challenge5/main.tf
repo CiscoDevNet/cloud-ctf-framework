@@ -185,6 +185,13 @@ resource "aws_instance" "ctf_chal5_web_instance" {
     destination = "/var/www/db_creds.php"
   }
 
+  provisioner "remote-exec" {
+    inline = [
+      "sudo chattr +i /var/www/db_creds.php",
+      "sudo chattr +i /var/www/html/index.php"
+    ]
+  }
+
   connection {
     type        = "ssh"
     user        = "ec2-user"
