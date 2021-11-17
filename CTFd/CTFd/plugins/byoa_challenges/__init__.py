@@ -236,10 +236,9 @@ class ByoaChallengeDeploys(db.Model):
             raise Exception("Found more than 1 VPC for this challenge! This should not be possible, please ask admins for assistance.")
         return None
 
-    # TODO NEXT: figure out what we need to return here and how to relay info to end user inside of challenge
 
-    def reset_challenge_deploy(self):
-        if self.deploy_status not in ['FAILED_DEPLOY', 'FAILED_DESTROY', 'DESTROYED']:
+    def reset_challenge_deploy(self, force=False):
+        if not force and self.deploy_status not in ['FAILED_DEPLOY', 'FAILED_DESTROY', 'DESTROYED']:
             err = "You can only reset a challenge deployment when it is in status FAILED_DEPLOY! It is currently "+self.deploy_status
             raise ByoaException(err, [err], 400, self)
         self.deploy_status = 'NOT_DEPLOYED'
@@ -550,7 +549,8 @@ def run_k8s_job(api_instance: k8sclient.BatchV1Api, job: V1Job, namespace="defau
 def delete_k8s_job(api_instance: k8sclient.BatchV1Api, job_name: str, namespace="default") -> V1Job:
     api_response = api_instance.delete_namespaced_job(
         name=job_name,
-        namespace=namespace)
+        namespace=namespace,
+        grace_period_seconds=0)
     # log("Job created. status='%s'" % str(api_response.status))
     return api_response
 
@@ -661,8 +661,9 @@ def load(app):
                 if request.args.get('check_job') == 'true':
                     log("CiscoCTF", "checking on job...")
                     bcd.check_k8s_job('destroy')
-                k8s_job = bcd.get_k8s_job('destroy', challenge.api_base_uri).__dict__
-                # job_name = k8s_job._metadata.labels["job-name"]
+                if bcd.deploy_status != 'DESTROYED':
+                    k8s_job = bcd.get_k8s_job('destroy', challenge.api_base_uri).__dict__
+
                 job_name = f"{bcd.get_chal_ref()}-team{bcd.team_id}-destroy"
                 job_name_deploy = f"{bcd.get_chal_ref()}-team{bcd.team_id}-deploy"
                 if is_admin():
@@ -717,14 +718,18 @@ def load(app):
                 # return Response('{"errors": ["Invalid challenge_id! This challenge_id does not exist."]}', status=404, mimetype='application/json')
 
             team: Teams = get_current_team()
+            force = False
             if team_id is not None:
                 if int(team_id) != team.id and not is_admin():
                     raise ByoaException("Non admin tried to view another team's deploy.", ["You are not an admin, you trickster"], 403)
                 bcd = get_or_create_byoa_cd(challenge_id, team_id)
+                if request.args.get('force') == 'true':
+                    log("CiscoCTF", "force resetting...")
+                    force = True
             else:
                 bcd = get_or_create_byoa_cd(challenge_id, team.id)
 
-            bcd.reset_challenge_deploy()
+            bcd.reset_challenge_deploy(force)
             return render_template('cisco/byoa_challenges/bcd.html', bcd=bcd.__dict__, challenge=challenge.__dict__,
                                    banner={"msg": f"Successfully reset deployment status. You may now try to deploy this.", "level": "success"})
         except ByoaException as be:

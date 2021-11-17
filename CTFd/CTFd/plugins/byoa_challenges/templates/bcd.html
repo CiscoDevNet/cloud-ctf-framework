@@ -39,21 +39,21 @@
             <div class="row" style="margin-bottom: 10px; margin-top: 10px;" id="deploy-btns">
                 {% if bcd.deploy_status == 'NOT_DEPLOYED'%}
                 <div class="col-md-3">
-                    <a href="/plugins/byoa_challenges/deploy/{{ challenge.id }}">
+                    <a href="/plugins/byoa_challenges/deploy/{{ bcd.challenge_id }}">
                         <button class="btn btn-outline-primary btn-outlined" id="challenge-deploy-btn">Deploy</button>
                     </a>
                 </div>
                 {% endif %}
                 {% if bcd.deploy_status == 'DEPLOYED'%}
                 <div class="col-md-3">
-                    <a href="/plugins/byoa_challenges/validate/{{ challenge.id }}">
+                    <a href="/plugins/byoa_challenges/validate/{{ bcd.challenge_id }}">
                         <button class="btn btn-outline-success btn-outlined" id="challenge-validate-btn" >Validate</button>
                     </a>
                 </div>
                 {% endif %}
                 {% if bcd.deploy_status == 'DEPLOYED' or bcd.deploy_status == 'FAILED_DEPLOY'or bcd.deploy_status == 'FAILED_DESTROY'  %}
                 <div class="col-md-3">
-                    <a href="/plugins/byoa_challenges/destroy/{{ challenge.id }}">
+                    <a href="/plugins/byoa_challenges/destroy/{{ bcd.challenge_id }}">
                         <button class="btn btn-outline-danger btn-outlined" id="challenge-destroy-btn" >Destroy</button>
                     </a>
                 </div>
@@ -101,7 +101,11 @@
             <p>Local challenge ID: <a href="/admin/challenges/{{ challenge.id }}" target="_blank">{{ challenge.id }}</a><br>
                 Admin challenge Reference: <a href="https://wwwin-github.cisco.com/bhavsha2/CloudCTF/tree/master/{{ challenge.api_base_uri }}" target="_blank">{{ challenge.api_base_uri }}</a><br>
                 Viewing Team ID: <a href="/admin/teams/{{ bcd.team_id }}" target="_blank">{{ bcd.team_id }}</a>
+
             </p>
+                {% if bcd.deploy_status == 'DEPLOYING' or bcd.deploy_status == 'DESTROYING' %}
+                    <p><a href="/plugins/byoa_challenges/view/{{ bcd.challenge_id }}/{{ bcd.team_id }}?check_job=true" style="margin-left:5px">Refresh Status</a></p>
+                {% endif %}
             <div class="row">
                 {% if bcd.deploy_status == 'NOT_DEPLOYED'%}
                     <div class="col">
@@ -127,6 +131,11 @@
                 <div class="col">
                     <a href="/plugins/byoa_challenges/reset/{{ challenge.id }}/{{ bcd.team_id }}"><button class="btn btn-outline-secondary btn-outlined" id="challenge-reset-btn"
                     >Reset Status</button></a>
+                </div>
+                <div class="col">
+                    <span>ONLY USE THIS IF YOU KNOW WHAT YOU ARE DOING</span>
+                    <a href="/plugins/byoa_challenges/reset/{{ challenge.id }}/{{ bcd.team_id }}?force=true"><button class="btn btn-outline-secondary btn-outlined" id="challenge-reset-btn"
+                    >FORCE Reset Status</button></a>
                 </div>
             </div>
 
