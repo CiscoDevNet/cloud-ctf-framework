@@ -44,18 +44,6 @@ resource "aws_s3_bucket" "infra-prod-secure-bucket" {
   }
 }
 
-resource "aws_s3_bucket_object" "dev-file" {
-  bucket = aws_s3_bucket.infra-dev-secure-bucket.id
-  key    = "/Home/dev/dev.txt"
-  source = "dev.txt"
-}
-
-resource "aws_s3_bucket_object" "prod-file" {
-  bucket = aws_s3_bucket.infra-prod-secure-bucket.id
-  key    = "/Home/prod/prod.txt"
-  source = "prod.txt"
-}
-
 resource "aws_iam_policy" "infra-dev" {
   name        = "infra-dev"
   path        = "/"
