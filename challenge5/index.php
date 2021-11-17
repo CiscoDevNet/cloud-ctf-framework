@@ -1,9 +1,11 @@
 <?php
+// DO NOT MODIFY THIS APPLICATION CODE
 function shaself(){
     return md5_file(__FILE__);
 }
 header("shaself: ".shaself());
-echo "<h2>My First Cloud LAMP</h2>"
+echo "<h2>My First Cloud LAMP</h2>";
+//echo "You found the flag! flag{Surely_This_is_n0t_a_real_flag}";
 
 require_once('../db_creds.php');
 
@@ -50,4 +52,3 @@ else
     }
 }
 mysqli_close($maria);
-?>

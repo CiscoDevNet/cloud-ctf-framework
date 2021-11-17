@@ -15,7 +15,7 @@
         {% if validation_result %}
             <h4>Validation Result</h4>
             <p>Result: {{ 'You have done it!' if validation_result.result else 'You have not fixed the issue yet :(' }}</p>
-            <p>Message: {{ validation_result.message }}</p>
+            <p>Message: {{ validation_result.message|safe }}</p>
             {% if validation_result.result %}
                 <p>Here is your flag: {{ validation_result.flag }}</p>
             {% endif %}

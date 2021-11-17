@@ -170,7 +170,8 @@ resource "aws_instance" "ctf_chal5_web_instance" {
       "sudo usermod -a -G apache ec2-user",
       "sudo chown -R apache:apache /var/www",
       "sudo chmod 775 /var/www",
-      "sudo chmod 775 /var/www/html"
+      "sudo chmod 775 /var/www/html",
+      "ln -s /var/www/.maria /var/www/html/.maria"
     ]
   }
   provisioner "file" {
