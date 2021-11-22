@@ -1,6 +1,12 @@
 # CloudCTF
 this the repo for cloud ctf 
 
+# Architecture
+
+<p align="center">
+    <img src="./Architecture.png">
+</p>
+
 # Container Registry
 This is the custom ctfd image we will use for the competition which will be deployed in the k3s cluster:  
 https://containers.cisco.com/repository/cloud-ctf/ctfd
