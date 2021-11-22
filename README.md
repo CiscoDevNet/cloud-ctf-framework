@@ -4,6 +4,7 @@ This repo is for building a cloud ctf based on AWS, leveraging the open source C
 NOTE: This project was open sourced (internal to Cisco) and is still in the process of being documented for others to use. 
 You are free to try the project today, but docs and refactoring for easier consumption are still in progress (with a low priority).
 
+For more info about the CTF event and this project, see [The project wiki](https://gitlab-sjc.cisco.com/cx-cloud-projects/cloudctf/wikis/home)
 # Architecture
 
 <p align="center">
