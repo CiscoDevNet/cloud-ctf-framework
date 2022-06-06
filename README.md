@@ -1,5 +1,8 @@
 # CloudCTF
-this the repo for cloud ctf 
+This repo is for building a cloud ctf based on AWS, leveraging the open source CTFd framework with a custom plugins.  
+
+NOTE: This project was open sourced (internal to Cisco) and is still in the process of being documented for others to use. 
+You are free to try the project today, but docs and refactoring for easier consumption are still in progress (with a low priority).
 
 # Architecture
 
@@ -9,7 +12,6 @@ this the repo for cloud ctf
 
 # Container Registry
 This is the custom ctfd image we will use for the competition which will be deployed in the k3s cluster:  
-https://containers.cisco.com/repository/cloud-ctf/ctfd
 
 # Local Development
 This project is managed via Makefile. You can build and push ctfd image, as well as stand up a local instance of ctfd.
@@ -106,7 +108,7 @@ To make a local image:
 make build-ctfd
 ```
 
-## Push image to container registry (containers.cisco.com)
+## Push image to container registry 
 To push up a new image run:
 ```bash
 make push-ctfd
@@ -141,6 +143,7 @@ BYOA_DOCKER_BUILD_FILE ?= Dockerfile.deploy_byoa_chal
 RUN_SCRIPT_ARG ?= /opt/CloudCTF/deploy_byoa_chal.sh
 TF_BASE_DIR_ARG ?= /opt/CloudCTF/$(CHALLENGE_REF_ARG)
 ```
+Note: CCC_PATH_BYOA_JOB is pointing to an internal container repository, you can point this at any container repository you would prefer.
 
 For example, assuming challenge1 terraform base path is inside of the `vpc` dir,  
 then we need to use a different path for `TF_BASE_DIR_ARG` docker build arg.  

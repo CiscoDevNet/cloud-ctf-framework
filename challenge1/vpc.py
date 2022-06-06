@@ -5,8 +5,6 @@ def vpc(ACCESS_KEY,SECRET_KEY):
 
 
 
-    #ACCESS_KEY = 'AKIA5AG3WQBBJK3NOJVV'
-    #SECRET_KEY = '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'
 
     client = boto3.client('ec2',aws_access_key_id=ACCESS_KEY, aws_secret_access_key=SECRET_KEY)
 
