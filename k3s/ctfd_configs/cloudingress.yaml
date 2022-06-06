@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-ctf-secure
+  namespace: cloud-ctf-cisco
+  
+  
+  
+status:
+  loadBalancer:
+    ingress:
+      - ip: 64.101.8.44
+spec:
+  tls:
+    - hosts:
+        - cccloudctfseccon2021.cisco.com
+      secretName: cloudctfsecret
+  rules:
+    - host: cccloudctfseccon2021.cisco.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ctfd
+                port:
+                  number: 8000
