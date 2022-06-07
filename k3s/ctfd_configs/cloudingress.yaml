@@ -9,14 +9,14 @@ metadata:
 status:
   loadBalancer:
     ingress:
-      - ip: 64.101.8.44
+      - ip: <external ip of node>
 spec:
   tls:
     - hosts:
-        - cccloudctfseccon2021.cisco.com
+        - cisco-cloud-ctf-demo.cisco.com
       secretName: cloudctfsecret
   rules:
-    - host: cccloudctfseccon2021.cisco.com
+    - host: cisco-cloud-ctf-demo.cisco.com
       http:
         paths:
           - path: /
