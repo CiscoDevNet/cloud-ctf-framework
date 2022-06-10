@@ -57,9 +57,9 @@ There will be 3 deployments for the 3 services:
 - [MySQL Server](#deploy-the-mysql-server)
 - [Redis Server](#deploy-the-redis-server)
 
-First, change to the `k3s/ctfd_configs` directory
+First, change to the `k8s/ctfd_configs` directory
 ```bash
-cd k3s/ctfd_configs
+cd k8s/ctfd_configs
 ```
 
 ## Deploy the ctfd web app service
@@ -244,4 +244,46 @@ add the following to /etc/hosts
 10.83.181.181   cisco-cloud-ctf-demo.cisco.com
 ```
 
-Now if I navigate to `https://cisco-cloud-ctf-demo.cisco.com` in a web browser I should see the Setup page for the CTFd. You can now go through the setup for CTFd.
+Now if I navigate to `https://cisco-cloud-ctf-demo.cisco.com` in a web browser I should see the Setup page for the CTFd. You can now go through the setup for CTFd.  
+
+
+# Troubleshooting
+
+## PVC claim 
+```
+Events:
+Type     Reason            Age                 From               Message
+  ----     ------            ----                ----               -------
+Warning  FailedScheduling  18m                 default-scheduler  0/1 nodes are available: 1 pod has unbound immediate PersistentVolumeClaims.
+Warning  FailedScheduling  93s (x17 over 18m)  default-scheduler  0/1 nodes are available: 1 pod has unbound immediate PersistentVolumeClaims
+```
+
+```bash
+kubectl get pvc
+NAME                  STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+ctf-pv-logs           Pending                                                     31m
+ctfd-pv-uploads       Pending                                                     31m
+ctfd-mysql-db-pv      Pending                                                     31m
+ctfd-redis-cache-pv   Pending                                                     31m
+```
+
+```bash
+kubectl describe pvc ctf-pv-logs
+Name:          ctf-pv-logs
+Namespace:     cloud-ctf-cisco
+StorageClass:
+Status:        Pending
+Volume:
+Labels:        app=ctf-pv-logs
+               ctfd=ctf-pv
+Annotations:   <none>
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:
+Access Modes:
+VolumeMode:    Filesystem
+Used By:       cloud-ctf-cisco-565dc49856-8szct
+Events:
+  Type    Reason         Age                  From                         Message
+  ----    ------         ----                 ----                         -------
+  Normal  FailedBinding  89s (x122 over 31m)  persistentvolume-controller  no persistent volumes available for this claim and no storage class is set
+```

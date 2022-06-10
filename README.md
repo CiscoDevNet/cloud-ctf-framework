@@ -138,7 +138,7 @@ You can see how this is built, and you can override build variables as needed to
 CHALLENGE_REF_ARG ?= challenge1
 BYOA_JOB_ACTION ?= deploy
 IMAGE_NAME_BYOA_JOB = $(CHALLENGE_REF_ARG)-$(BYOA_JOB_ACTION)
-CCC_PATH_BYOA_JOB ?= containers.cisco.com/$(NS)/$(IMAGE_NAME_BYOA_JOB)
+CCC_PATH_BYOA_JOB ?= internal-container-repo.example.com/$(NS)/$(IMAGE_NAME_BYOA_JOB)
 BYOA_DOCKER_BUILD_FILE ?= Dockerfile.deploy_byoa_chal
 RUN_SCRIPT_ARG ?= /opt/CloudCTF/deploy_byoa_chal.sh
 TF_BASE_DIR_ARG ?= /opt/CloudCTF/$(CHALLENGE_REF_ARG)
@@ -193,8 +193,9 @@ make build-bc TF_BASE_DIR_ARG=/opt/CloudCTF/challenge1/vpc
 
 ## Deploy code
 ### Terraform code
-Challenge code that uses terraform place into a "challenge#" directory at the root of the project. i.e. `challenge1`
-Put terraform files at the root level of this repo. This is where the `terraform` commands will be run from (i.e. `terraform init)
+Place challenge code that uses terraform into a `challenge#` directory at the root of the project. i.e. `challenge1`  
+Put terraform files for the challenge at the root level of this directory.  
+This is where the `terraform` commands will be run from (i.e. `terraform init`)
 
 ### Running and Testing Terraform
 When developing and testing locally, use the `make build-bc CHALLENGE_REF_ARG=challenge1` command to build your container for deploying terraform.   

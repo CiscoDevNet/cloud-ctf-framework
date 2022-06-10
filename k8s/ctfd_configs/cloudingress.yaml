@@ -1,11 +1,13 @@
+# Things that need to be set:
+# status->loadBalancer->ingress->ip
+# spec->tls->hosts
+# spec->rules->host
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: cloud-ctf-secure
   namespace: cloud-ctf-cisco
-  
-  
-  
+
 status:
   loadBalancer:
     ingress:
