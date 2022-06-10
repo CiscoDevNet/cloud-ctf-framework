@@ -27,6 +27,7 @@ resource "aws_instance" "chall1http"{
            <br>bh76363636: Tell us
            </p>
         </h1> " > /var/www/html/index.html
+        while true; do sleep 1; curl localhost; if [ $? -eq 0 ]; then echo "done"; break; fi; done
     EOF
     tags = {
     Name = "CloudCTFchall1"

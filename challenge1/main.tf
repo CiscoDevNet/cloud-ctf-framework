@@ -53,7 +53,7 @@ resource "aws_default_network_acl" "default" {
     }
     ingress{
         #cidr_block = "106.203.219.180/32"
-        cidr_block = "64.102.249.9/32" # public ip of the vm from where we would test 
+        cidr_block = "64.101.8.42/32" # public ip of the vm from where we would test 
         #cidr_block = "72.163.220.7/32" #currently setting this local ip which is my machine as testing locally
         rule_no = 130
         action = "allow"
