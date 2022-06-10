@@ -10,11 +10,36 @@ You are free to try the project today, but docs and refactoring for easier consu
     <img src="./Architecture.png">
 </p>
 
-# Container Registry
-This is the custom ctfd image we will use for the competition which will be deployed in the k3s cluster:  
+# Container Images
+All images used in the deployment yaml files come from `docker.io` (which can bre browsed via https://hub.docker.com).  
+You will likely want to make a custom image for the ctfd application so that when you make changes to plugin code you can build and push a new image, then re-deploy in K8s.  
+The deploy yaml for ctfd uses the [ctfd](https://hub.docker.com/r/ctfd/ctfd) official docker image. If you are not doing cloud challenges and BYOA and you just want to host a normal ctfd application in K8s, then you can just use this image.
+
+## Cloud Challenges Setup
+If you want to use the plugin code for AWS and BYOA challenges, you will need to use a custom image with the updated plugin code.    
+For this you need to host custom container images. First figure out what registry you want to use, then make sure to set the `C_REGISTRY` variable for the `Makefile` before you push any images.  
+When you want to push an update the process is:  
+build, push, tag a new image which will contain the code. then re-deploy the ctfd app in K8s which will pick up the new changes.
+
+
+## BYOA Challenges Registry
+For the BYOA challenges, each one needs to have its own image which will be run for deploy/destroy operations. 
+You will need to find a container registry to use to host the images. The Makefile also uses the `C_REGISTRY` variable as the registry for these.
+
+
+# Setting up production k8s
+## Build a new cluster  
+If you don't have a k8s cluster available and need to build one, this project provides steps for [how to set up in K3s](docs/K3s_setup.md), which will walk you through deploying K3s on and then using that to host. 
+It also includes a script which will do the entire install and setup for you!
+
+## Use existing cluster
+If you want to use an existing instance of K8s to host the production application you can use the same document mentioned above, just start at the [create a namespace step](docs/K3s_setup#create-a-namespace).
 
 # Local Development
-This project is managed via Makefile. You can build and push ctfd image, as well as stand up a local instance of ctfd.
+Since it would be annoying to have to build and push images to test simple changes, the local development for this project does not need to run on k8s, you can just use docker to test your changes.  
+This local setup for development does not require mysql or redis, so it is much more lightweight. It uses sqlite as the DB instead of mysql.   
+The general process is to set up a local container instance which links in the code, modify and test, then build and push a new image to be used in production.  
+This project is managed via `Makefile`. You can build and push ctfd image, as well as stand up a local instance of ctfd using shortcut commands from there (more info below).
 
 ## Quick Start
 Build ctfd container with custom code (plugins)

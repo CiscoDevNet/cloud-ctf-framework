@@ -5,6 +5,14 @@ This example walkthrough uses [K3s](https://k3s.io/) as the K8s distribution sin
 # Set up the Kubernetes Cluster
 The first step is to set up your Kubernetes cluster. If you already have a K8s cluster, you can skip to [the create a namespace step](#create-a-namespace).
 
+## Quick Install Script
+The below steps will walk you through the setup if you want to understand more about how it is deployed.  
+If you want to run a script which will do all of the steps below for you, you can use the [k8s/k3s_setup.sh](k8s/k3s_setup.sh) script.  
+```bash
+cd k8s
+./k3s_setup.sh
+```
+
 ## Deploy K3s
 Set up K3 cluster as per https://k3s.io/  
 If you are just going to run 1 master node, it should be as simple as running 1 command:  
@@ -249,7 +257,9 @@ Now if I navigate to `https://cisco-cloud-ctf-demo.cisco.com` in a web browser I
 
 # Troubleshooting
 
-## PVC claim 
+## pods not starting due to PersistentVolumeClaims 
+If you do not have a default storage class, or if the default storage class was not available when you applied the deployments, you might see something like below in the events when you describe the pod(s):  
+`kubectl describe pod cloud-ctf-cisco-565dc49856-8szct`
 ```
 Events:
 Type     Reason            Age                 From               Message
@@ -258,15 +268,19 @@ Warning  FailedScheduling  18m                 default-scheduler  0/1 nodes are 
 Warning  FailedScheduling  93s (x17 over 18m)  default-scheduler  0/1 nodes are available: 1 pod has unbound immediate PersistentVolumeClaims
 ```
 
+If you list the pvcs:  
+`kubectl get pvc`
 ```bash
-kubectl get pvc
 NAME                  STATUS    VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE
 ctf-pv-logs           Pending                                                     31m
 ctfd-pv-uploads       Pending                                                     31m
 ctfd-mysql-db-pv      Pending                                                     31m
 ctfd-redis-cache-pv   Pending                                                     31m
 ```
+If you see the `STORAGECLASS` is blank, that means the default did not get applied at the time of the PVC creation.
+This can happen if you deploy before the default storage class provisioner is ready. 
 
+If you describe the pvc you should see something like below:
 ```bash
 kubectl describe pvc ctf-pv-logs
 Name:          ctf-pv-logs
@@ -287,3 +301,31 @@ Events:
   ----    ------         ----                 ----                         -------
   Normal  FailedBinding  89s (x122 over 31m)  persistentvolume-controller  no persistent volumes available for this claim and no storage class is set
 ```
+
+If you get into this state you should destroy and re-deploy once the default SC is available, which can be done with the following 2 commands:
+```
+kubectl delete all --all --namespace cloud-ctf-cisco
+kubectl delete pvc ctfd-pv-uploads ctfd-mysql-db-pv ctfd-redis-cache-pv ctf-pv-logs
+```
+If you don't want to (or don't have) a default storage class, you will need to modify the deployment yamls and add a `storageClassName` under the spec for each PersistentVolumeClaim.  
+Example:
+add `storageClassName: my-storage-class` under the spec:
+```yaml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: cloud-ctf-cisco
+  creationTimestamp: null
+  labels:
+    ctfd: ctf-pv
+    app: ctfd-pv-uploads
+  name: ctfd-pv-uploads
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+  storageClassName: my-storage-class
+```
+If you don't specify one it will use the cluster's default.

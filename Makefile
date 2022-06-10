@@ -3,9 +3,10 @@ include .env
 export
 
 NS ?= cloud-ctf
+C_REGISTRY ?= <my-registry>
 IMAGE_NAME_CTFD ?= ctfd
 VERSION ?= local
-CCC_PATH_CTFD ?= containers.cisco.com/$(NS)/$(IMAGE_NAME_CTFD)
+CCC_PATH_CTFD ?= $(C_REGISTRY)/$(NS)/$(IMAGE_NAME_CTFD)
 PUSH_TAG ?= manualbuild
 LOCAL_CONTAINER_NAME_CTFD ?= cisco-cloud-ctfd
 CTF_K8S_NAMESPACE=jgroetzi-ctf-dev
@@ -17,7 +18,7 @@ EXTRA_RUN_ARGS=-v ${CURDIR}/.data/challenge5:/var/data/team-byoa-pvc/team1/chall
 CHALLENGE_REF_ARG ?= challenge1
 BYOA_JOB_ACTION ?= deploy
 IMAGE_NAME_BYOA_JOB = $(CHALLENGE_REF_ARG)-$(BYOA_JOB_ACTION)
-CCC_PATH_BYOA_JOB ?= containers.cisco.com/$(NS)/$(IMAGE_NAME_BYOA_JOB)
+CCC_PATH_BYOA_JOB ?= $(C_REGISTRY)/$(NS)/$(IMAGE_NAME_BYOA_JOB)
 BYOA_DOCKER_BUILD_FILE ?= Dockerfile.run_byoa_chal_job
 RUN_SCRIPT_ARG ?= /opt/CloudCTF/$(BYOA_JOB_ACTION)_byoa_chal.sh
 TF_BASE_DIR_ARG ?= /opt/CloudCTF/$(CHALLENGE_REF_ARG)
