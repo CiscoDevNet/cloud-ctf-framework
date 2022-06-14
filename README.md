@@ -1,8 +1,8 @@
 # CloudCTF
 This repo is for building a cloud ctf based on AWS, leveraging the open source CTFd framework with a custom plugins.  
 
-NOTE: This project was open sourced (internal to Cisco) and is still in the process of being documented for others to use. 
-You are free to try the project today, but docs and refactoring for easier consumption are still in progress (with a low priority).
+NOTE: This project was open sourced and is still in the process of being documented for others to use. 
+You are free to try the project today, but docs and refactoring for easier consumption are still in progress.
 
 # Architecture
 
